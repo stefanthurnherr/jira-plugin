@@ -1,5 +1,7 @@
 package hudson.plugins.jira;
 
+import hudson.plugins.jira.remote.JiraSite;
+
 import java.net.MalformedURLException;
 import java.net.URL;
 

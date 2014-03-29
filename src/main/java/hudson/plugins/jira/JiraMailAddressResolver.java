@@ -2,10 +2,13 @@ package hudson.plugins.jira;
 
 import hudson.Extension;
 import hudson.model.User;
+import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteUser;
 import hudson.tasks.MailAddressResolver;
 
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.util.logging.Level;
 import java.util.logging.Logger;

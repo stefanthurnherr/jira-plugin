@@ -1,15 +1,21 @@
-package hudson.plugins.jira;
+package hudson.plugins.jira.remote;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
+
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
+import hudson.plugins.jira.JiraIssue;
+import hudson.plugins.jira.JiraProjectProperty;
+import hudson.plugins.jira.JiraVersion;
+import hudson.plugins.jira.Messages;
 import hudson.plugins.jira.soap.*;
 import hudson.util.FormValidation;
+
 import org.apache.axis.AxisFault;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
@@ -18,6 +24,7 @@ import javax.annotation.CheckForNull;
 import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.ref.WeakReference;
@@ -51,7 +58,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * First char must be a letter, then at least one letter, digit or underscore.
      * See issue JENKINS-729, JENKINS-4092
      */
-    protected static final Pattern DEFAULT_ISSUE_PATTERN = Pattern.compile("([a-zA-Z][a-zA-Z0-9_]+-[1-9][0-9]*)([^.]|\\.[^0-9]|\\.$|$)");
+    public static final Pattern DEFAULT_ISSUE_PATTERN = Pattern.compile("([a-zA-Z][a-zA-Z0-9_]+-[1-9][0-9]*)([^.]|\\.[^0-9]|\\.$|$)");
 
     /**
      * URL of JIRA for Jenkins access, like <tt>http://jira.codehaus.org/</tt>.
@@ -173,7 +180,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         this.jiraSession.set(new WeakReference<JiraSession>(null));
     }
 
-    protected Object readResolve() {
+    public Object readResolve() {
         projectUpdateLock = new ReentrantLock();
         issueCache = makeIssueCache();
         jiraSession = new ThreadLocal<WeakReference<JiraSession>>();

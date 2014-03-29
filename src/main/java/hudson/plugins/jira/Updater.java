@@ -4,13 +4,17 @@ import hudson.Util;
 import hudson.model.*;
 import hudson.model.AbstractBuild.DependencyChange;
 import hudson.plugins.jira.listissuesparameter.JiraIssueParameterValue;
+import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemotePermissionException;
 import hudson.scm.ChangeLogSet.AffectedFile;
 import hudson.scm.ChangeLogSet.Entry;
 import hudson.scm.RepositoryBrowser;
+
 import org.apache.commons.lang.StringUtils;
 
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.lang.reflect.Method;

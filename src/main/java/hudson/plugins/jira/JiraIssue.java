@@ -1,5 +1,6 @@
 package hudson.plugins.jira;
 
+import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteIssue;
 
 /**

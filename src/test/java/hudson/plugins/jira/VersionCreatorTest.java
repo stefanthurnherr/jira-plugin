@@ -5,11 +5,14 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
+import hudson.plugins.jira.remote.JiraSite;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.mockito.Mockito;
 
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.util.HashSet;

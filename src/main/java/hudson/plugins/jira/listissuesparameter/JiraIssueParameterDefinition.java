@@ -19,15 +19,17 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
-import hudson.plugins.jira.JiraSession;
-import hudson.plugins.jira.JiraSite;
+import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteIssue;
 import net.sf.json.JSONObject;
+
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.Stapler;
 import org.kohsuke.stapler.StaplerRequest;
 
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;

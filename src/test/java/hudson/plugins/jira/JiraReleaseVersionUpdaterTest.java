@@ -13,6 +13,7 @@ import hudson.Launcher;
 import hudson.model.BuildListener;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
+import hudson.plugins.jira.remote.JiraSite;
 
 import java.io.IOException;
 import java.io.PrintStream;

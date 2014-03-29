@@ -1,9 +1,12 @@
-package hudson.plugins.jira;
+package hudson.plugins.jira.remote;
 
+import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.JiraSoapService;
 import hudson.plugins.jira.soap.RemoteFieldValue;
 import hudson.plugins.jira.soap.RemoteIssue;
 import hudson.plugins.jira.soap.RemoteNamedObject;
+
 import org.junit.Before;
 import org.junit.Test;
 import org.junit.runner.RunWith;
@@ -12,6 +15,7 @@ import org.mockito.Mock;
 import org.mockito.runners.MockitoJUnitRunner;
 
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.io.PrintStream;
 import java.rmi.RemoteException;

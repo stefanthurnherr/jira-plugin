@@ -1,4 +1,4 @@
-package hudson.plugins.jira;
+package hudson.plugins.jira.remote;
 
 import hudson.plugins.jira.soap.*;
 

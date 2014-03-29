@@ -1,9 +1,13 @@
 package hudson.plugins.jira;
 
 import com.google.common.collect.Sets;
+
 import hudson.MarkupText;
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleBuild;
+import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraSite;
+
 import org.junit.Assert;
 import org.junit.Before;
 import org.junit.Test;
@@ -13,6 +17,7 @@ import org.mockito.invocation.InvocationOnMock;
 import org.mockito.stubbing.Answer;
 
 import javax.xml.rpc.ServiceException;
+
 import java.io.IOException;
 import java.net.URL;
 import java.util.Collections;
