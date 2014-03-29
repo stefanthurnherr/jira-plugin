@@ -2,8 +2,9 @@ package hudson.plugins.jira;
 
 import hudson.Extension;
 import hudson.model.User;
-import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSite;
+import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.soap.RemoteUser;
 import hudson.tasks.MailAddressResolver;
 
@@ -29,16 +30,11 @@ public class JiraMailAddressResolver extends MailAddressResolver {
 
         for (JiraSite site : JiraProjectProperty.DESCRIPTOR.getSites()) {
             try {
-                JiraSession session = site.createSession();
-                if (session != null) {
-                    RemoteUser user = session.service.getUser(session.token, username);
-                    if (user != null) {
-                        String email = user.getEmail();
-                        if (email != null) {
-                            email = unmaskEmail(email);
-                            return email;
-                        }
-                    }
+            	JiraInteractionSession session = site.createSession();
+            	String email = session.getEmailForUsername(username);           
+                if (email != null) {
+                    email = unmaskEmail(email);
+                    return email;
                 }
             } catch (IOException ex) {
                 LOGGER.log(Level.WARNING, "Unable to create session with " + site.getName(), ex);

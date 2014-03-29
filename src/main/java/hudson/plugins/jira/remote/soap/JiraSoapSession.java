@@ -1,12 +1,23 @@
-package hudson.plugins.jira.remote;
+package hudson.plugins.jira.remote.soap;
 
+import hudson.Util;
+import hudson.plugins.jira.Messages;
+import hudson.plugins.jira.remote.JiraInteractionSession;
+import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.*;
+import hudson.util.FormValidation;
 
+import java.io.IOException;
+import java.net.MalformedURLException;
+import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
+import java.util.logging.Level;
 import java.util.logging.Logger;
+
+import javax.xml.rpc.ServiceException;
 
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
@@ -18,10 +29,12 @@ import static org.apache.commons.lang.StringUtils.isNotEmpty;
  *
  * @author Kohsuke Kawaguchi
  */
-public class JiraSession implements JiraInteractionSession {
-    private static final Logger LOGGER = Logger.getLogger(JiraSession.class.getName());
+public class JiraSoapSession implements JiraInteractionSession {
+    private static final Logger LOGGER = Logger.getLogger(JiraSoapSession.class.getName());
 
     public final JiraSoapService service;
+    
+    private final String urlExternalForm;
 
     /**
      * This security token is used by the server to associate SOAP invocations
@@ -38,10 +51,33 @@ public class JiraSession implements JiraInteractionSession {
      * This session is created for this site.
      */
     private final JiraSite site;
+    
+    //FIXME: first method argument 'site' shouldn't be necessary, check why.
+    public static JiraSoapSession createSession(JiraSite site, URL url, String username, String password, boolean useHttpAuth) throws IOException, ServiceException {
+    	
+        final JiraSoapServiceService jiraSoapServiceGetter = new JiraSoapServiceServiceLocator();
+        final String urlExternalForm = url.toExternalForm();
+    	
+    	if (useHttpAuth) {
+            String httpAuthUrl = url.toExternalForm().replace(
+                    url.getHost(),
+                    username + ":" + password + "@" + url.getHost()) + "rpc/soap/jirasoapservice-v2";
+            JiraSoapService service = jiraSoapServiceGetter.getJirasoapserviceV2(
+                    new URL(httpAuthUrl));
+            return new JiraSoapSession(site, urlExternalForm, service, null); //no need to login
+        }
 
-    /* package */JiraSession(JiraSite site, JiraSoapService service,
+        JiraSoapService service = jiraSoapServiceGetter.getJirasoapserviceV2(
+                new URL(url, "rpc/soap/jirasoapservice-v2"));
+        
+        final String jiraToken = service.login(username, password);
+        return new JiraSoapSession(site, urlExternalForm, service, jiraToken);
+    }
+    
+    /* package */JiraSoapSession(JiraSite site, String urlExternalForm, JiraSoapService service,
                              String token) {
         this.service = service;
+        this.urlExternalForm = urlExternalForm;
         this.token = token;
         this.site = site;
     }
@@ -51,8 +87,7 @@ public class JiraSession implements JiraInteractionSession {
 	 */
     public Set<String> getProjectKeys() throws RemoteException {
         if (projectKeys == null) {
-            LOGGER.fine("Fetching remote project key list from "
-                    + site.getName());
+            LOGGER.fine("Fetching remote project key list from " + urlExternalForm);
             RemoteProject[] remoteProjects = service
                     .getProjectsNoSchemes(token);
             projectKeys = new HashSet<String>(remoteProjects.length);
@@ -375,4 +410,18 @@ public class JiraSession implements JiraInteractionSession {
         newVersion.setName(version);
         return service.addVersion(token, projectKey, newVersion);
     }
+
+	/* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getEmailForUsername(java.lang.String)
+	 */
+	public String getEmailForUsername(String username) throws RemoteException {
+		RemoteUser user = service.getUser(token, username);
+        if (user != null) {
+            String email = user.getEmail();
+            if (email != null) {
+                return email;
+            }
+        }
+		return null;
+	}
 }

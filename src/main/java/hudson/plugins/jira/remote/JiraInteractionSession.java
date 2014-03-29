@@ -14,6 +14,13 @@ import java.util.Set;
 public interface JiraInteractionSession {
 
 	/**
+	 * @param username
+	 * @return the email address registered in this JIRA for the supplier
+	 *         username
+	 */
+	String getEmailForUsername(String username) throws RemoteException;
+	
+	/**
 	 * Returns the set of project keys (like MNG, JENKINS, etc) that are
 	 * available in this JIRA.
 	 * Guarantees to return all project keys in upper case.

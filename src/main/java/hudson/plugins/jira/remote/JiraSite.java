@@ -13,6 +13,8 @@ import hudson.plugins.jira.JiraIssue;
 import hudson.plugins.jira.JiraProjectProperty;
 import hudson.plugins.jira.JiraVersion;
 import hudson.plugins.jira.Messages;
+import hudson.plugins.jira.remote.soap.JiraSoapSession;
+import hudson.plugins.jira.remote.soap.SoapUrlCheck;
 import hudson.plugins.jira.soap.*;
 import hudson.util.FormValidation;
 
@@ -141,7 +143,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      */
     private transient Lock projectUpdateLock = new ReentrantLock();
 
-    private transient ThreadLocal<WeakReference<JiraSession>> jiraSession = new ThreadLocal<WeakReference<JiraSession>>();
+    private transient ThreadLocal<WeakReference<JiraInteractionSession>> jiraSession = new ThreadLocal<WeakReference<JiraInteractionSession>>();
 
     @DataBoundConstructor
     public JiraSite(URL url, URL alternativeUrl, String userName, String password, boolean supportsWikiStyleComment, boolean recordScmChanges, String userPattern,
@@ -177,14 +179,14 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         this.groupVisibility = Util.fixEmpty(groupVisibility);
         this.roleVisibility = Util.fixEmpty(roleVisibility);
         this.useHTTPAuth = useHTTPAuth;
-        this.jiraSession.set(new WeakReference<JiraSession>(null));
+        this.jiraSession.set(new WeakReference<JiraInteractionSession>(null));
     }
 
     public Object readResolve() {
         projectUpdateLock = new ReentrantLock();
         issueCache = makeIssueCache();
-        jiraSession = new ThreadLocal<WeakReference<JiraSession>>();
-        jiraSession.set(new WeakReference<JiraSession>(null));
+        jiraSession = new ThreadLocal<WeakReference<JiraInteractionSession>>();
+        jiraSession.set(new WeakReference<JiraInteractionSession>(null));
         return this;
     }
 
@@ -204,10 +206,10 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @return null if remote access is not supported.
      */
     @Nullable
-    public JiraSession getSession() throws IOException, ServiceException {
-        JiraSession session = null;
+    public JiraInteractionSession getSession() throws IOException, ServiceException {
+        JiraInteractionSession session = null;
 
-        WeakReference<JiraSession> weakReference = jiraSession.get();
+        WeakReference<JiraInteractionSession> weakReference = jiraSession.get();
         if (weakReference != null) {
             session = weakReference.get();
         }
@@ -216,7 +218,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
             // TODO: we should check for session timeout, too (but there's no method for that on JiraSoapService)
             // Currently no real problem, as we're using a weak reference for the session, so it will be GC'ed very quickly
             session = createSession();
-            jiraSession.set(new WeakReference<JiraSession>(session));
+            jiraSession.set(new WeakReference<JiraInteractionSession>(session));
         }
         return session;
     }
@@ -228,23 +230,12 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @deprecated please use {@link #getSession()} unless you really want a NEW session
      */
     @Deprecated
-    public JiraSession createSession() throws IOException, ServiceException {
-        if (userName == null || password == null)
+    public JiraInteractionSession createSession() throws IOException, ServiceException {
+        if (userName == null || password == null) {
             return null;    // remote access not supported
-        JiraSoapServiceService jiraSoapServiceGetter = new JiraSoapServiceServiceLocator();
-
-        if (useHTTPAuth) {
-            String httpAuthUrl = url.toExternalForm().replace(
-                    url.getHost(),
-                    userName + ":" + password + "@" + url.getHost()) + "rpc/soap/jirasoapservice-v2";
-            JiraSoapService service = jiraSoapServiceGetter.getJirasoapserviceV2(
-                    new URL(httpAuthUrl));
-            return new JiraSession(this, service, null); //no need to login
         }
-
-        JiraSoapService service = jiraSoapServiceGetter.getJirasoapserviceV2(
-                new URL(url, "rpc/soap/jirasoapservice-v2"));
-        return new JiraSession(this, service, service.login(userName, password));
+        
+        return JiraSoapSession.createSession(this, url, userName, password, useHTTPAuth);
     }
 
     /**
@@ -679,36 +670,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
             if (!Hudson.getInstance().hasPermission(Hudson.ADMINISTER))
                 return FormValidation.ok();
 
-            return new FormValidation.URLCheck() {
-                @Override
-                protected FormValidation check() throws IOException,
-                        ServletException {
-                    String url = Util.fixEmpty(value);
-                    if (url == null) {
-                        return FormValidation.error(Messages
-                                .JiraProjectProperty_JiraUrlMandatory());
-                    }
-
-                    // call the wsdl uri to check if the jira soap service can be reached
-                    try {
-                        if (!findText(open(new URL(url)), "Atlassian JIRA")) {
-                            return FormValidation.error(Messages
-                                    .JiraProjectProperty_NotAJiraUrl());
-                        }
-
-                        URL soapUrl = new URL(new URL(url), "rpc/soap/jirasoapservice-v2?wsdl");
-                        if (!findText(open(soapUrl), "wsdl:definitions")) {
-                            return FormValidation.error(Messages
-                                    .JiraProjectProperty_NoWsdlAvailable());
-                        }
-
-                        return FormValidation.ok();
-                    } catch (IOException e) {
-                        LOGGER.log(Level.WARNING, "Unable to connect to " + url, e);
-                        return handleIOException(url, e);
-                    }
-                }
-            }.check();
+            return new SoapUrlCheck(value).doCheck();
         }
 
         public FormValidation doCheckUserPattern(@QueryParameter String value) throws IOException {
