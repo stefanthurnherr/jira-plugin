@@ -5,8 +5,8 @@ import com.google.common.collect.Sets;
 
 import hudson.model.*;
 import hudson.plugins.jira.listissuesparameter.JiraIssueParameterValue;
-import hudson.plugins.jira.remote.JiraSession;
 import hudson.plugins.jira.remote.JiraSite;
+import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.soap.RemoteComment;
 import hudson.plugins.jira.soap.RemoteGroup;
 import hudson.plugins.jira.soap.RemoteIssue;
@@ -210,7 +210,7 @@ public class UpdaterTest {
     @Bug(4572)
     public void testComment() throws IOException, ServiceException, InterruptedException {
         // mock JIRA session:
-        JiraSession session = mock(JiraSession.class);
+        JiraSoapSession session = mock(JiraSoapSession.class);
         when(session.existsIssue(Mockito.anyString())).thenReturn(Boolean.TRUE);
         when(session.getIssue(Mockito.anyString())).thenReturn(new RemoteIssue());
         when(session.getGroup(Mockito.anyString())).thenReturn(new RemoteGroup("Software Development", null));

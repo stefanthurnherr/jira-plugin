@@ -1,7 +1,8 @@
-package hudson.plugins.jira.remote;
+package hudson.plugins.jira.remote.soap;
 
-import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSite;
+import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.soap.JiraSoapService;
 import hudson.plugins.jira.soap.RemoteFieldValue;
 import hudson.plugins.jira.soap.RemoteIssue;
@@ -18,6 +19,7 @@ import javax.xml.rpc.ServiceException;
 
 import java.io.IOException;
 import java.io.PrintStream;
+import java.net.URL;
 import java.rmi.RemoteException;
 
 import static org.apache.commons.lang.RandomStringUtils.randomAlphanumeric;
@@ -49,14 +51,15 @@ public class ChangingWorkflowTest {
     private JiraSoapService service;
 
     @Mock
-    private JiraSession mockSession;
+    private JiraSoapSession mockSession;
 
 
     private JiraInteractionSession spySession;
 
     @Before
     public void setupSpy() {
-        spySession = spy(new JiraSession(site, service, TOKEN));
+    	final String url = "testUrl-" + ChangingWorkflowTest.class.getSimpleName();
+        spySession = spy(new JiraSoapSession(site, url, service, TOKEN));
     }
 
     @Test
