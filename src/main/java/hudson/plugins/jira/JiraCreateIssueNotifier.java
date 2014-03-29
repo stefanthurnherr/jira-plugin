@@ -6,7 +6,6 @@ import hudson.Launcher;
 import hudson.Util;
 import hudson.model.*;
 import hudson.plugins.jira.remote.JiraInteractionSession;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteComponent;
 import hudson.plugins.jira.soap.RemoteIssue;
 import hudson.tasks.BuildStepDescriptor;

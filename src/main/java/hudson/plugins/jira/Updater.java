@@ -5,7 +5,6 @@ import hudson.model.*;
 import hudson.model.AbstractBuild.DependencyChange;
 import hudson.plugins.jira.listissuesparameter.JiraIssueParameterValue;
 import hudson.plugins.jira.remote.JiraInteractionSession;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemotePermissionException;
 import hudson.scm.ChangeLogSet.AffectedFile;
 import hudson.scm.ChangeLogSet.Entry;

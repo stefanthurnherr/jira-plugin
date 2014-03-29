@@ -5,7 +5,6 @@ import hudson.model.AbstractProject;
 import hudson.model.Job;
 import hudson.model.JobProperty;
 import hudson.model.JobPropertyDescriptor;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.util.CopyOnWriteList;
 import net.sf.json.JSONObject;
 

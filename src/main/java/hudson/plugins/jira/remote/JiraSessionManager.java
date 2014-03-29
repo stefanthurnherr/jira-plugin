@@ -1,5 +1,6 @@
 package hudson.plugins.jira.remote;
 
+import hudson.plugins.jira.JiraSite;
 import hudson.plugins.jira.remote.soap.JiraSoapSession;
 
 import java.io.IOException;

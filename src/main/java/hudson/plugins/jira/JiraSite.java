@@ -1,4 +1,4 @@
-package hudson.plugins.jira.remote;
+package hudson.plugins.jira;
 
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
@@ -9,10 +9,9 @@ import hudson.model.AbstractDescribableImpl;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
-import hudson.plugins.jira.JiraIssue;
-import hudson.plugins.jira.JiraProjectProperty;
-import hudson.plugins.jira.JiraVersion;
 import hudson.plugins.jira.Messages;
+import hudson.plugins.jira.remote.JiraInteractionSession;
+import hudson.plugins.jira.remote.JiraSessionManager;
 import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.remote.soap.SoapUrlCheck;
 import hudson.plugins.jira.soap.*;

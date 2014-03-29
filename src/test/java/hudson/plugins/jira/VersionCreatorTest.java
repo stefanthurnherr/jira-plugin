@@ -5,7 +5,6 @@ import hudson.Launcher;
 import hudson.model.AbstractBuild;
 import hudson.model.AbstractProject;
 import hudson.model.BuildListener;
-import hudson.plugins.jira.remote.JiraSite;
 
 import org.junit.Before;
 import org.junit.Test;

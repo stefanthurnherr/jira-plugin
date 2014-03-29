@@ -3,7 +3,6 @@ package hudson.plugins.jira;
 import hudson.Extension;
 import hudson.model.User;
 import hudson.plugins.jira.remote.JiraInteractionSession;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.soap.RemoteUser;
 import hudson.tasks.MailAddressResolver;

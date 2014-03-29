@@ -19,8 +19,8 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
+import hudson.plugins.jira.JiraSite;
 import hudson.plugins.jira.remote.JiraInteractionSession;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteIssue;
 import net.sf.json.JSONObject;
 

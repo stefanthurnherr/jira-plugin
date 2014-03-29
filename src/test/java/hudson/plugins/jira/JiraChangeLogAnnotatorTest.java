@@ -5,7 +5,6 @@ import com.google.common.collect.Sets;
 import hudson.MarkupText;
 import hudson.model.AbstractProject;
 import hudson.model.FreeStyleBuild;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.remote.soap.JiraSoapSession;
 
 import org.junit.Assert;

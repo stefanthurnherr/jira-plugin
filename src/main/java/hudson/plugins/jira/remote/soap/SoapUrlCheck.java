@@ -1,8 +1,8 @@
 package hudson.plugins.jira.remote.soap;
 
 import hudson.Util;
+import hudson.plugins.jira.JiraSite;
 import hudson.plugins.jira.Messages;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.util.FormValidation;
 
 import java.io.IOException;

@@ -5,7 +5,6 @@ import com.google.common.collect.Sets;
 
 import hudson.model.*;
 import hudson.plugins.jira.listissuesparameter.JiraIssueParameterValue;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.soap.RemoteComment;
 import hudson.plugins.jira.soap.RemoteGroup;

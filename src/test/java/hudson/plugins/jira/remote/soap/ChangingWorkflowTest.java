@@ -1,7 +1,7 @@
 package hudson.plugins.jira.remote.soap;
 
+import hudson.plugins.jira.JiraSite;
 import hudson.plugins.jira.remote.JiraInteractionSession;
-import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.soap.JiraSoapService;
 import hudson.plugins.jira.soap.RemoteFieldValue;
