@@ -65,7 +65,7 @@ class Updater {
 
             JiraInteractionSession session = null;
             try {
-                session = site.createSession();
+                session = site.getSession();
             } catch (ServiceException e) {
                 listener.getLogger().println(Messages.Updater_FailedToConnect());
                 e.printStackTrace(listener.getLogger());

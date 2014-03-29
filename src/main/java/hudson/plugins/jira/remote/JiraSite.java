@@ -217,25 +217,10 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         if (session == null) {
             // TODO: we should check for session timeout, too (but there's no method for that on JiraSoapService)
             // Currently no real problem, as we're using a weak reference for the session, so it will be GC'ed very quickly
-            session = createSession();
+            session = JiraSessionManager.createSession(this, url, userName, password, useHTTPAuth);
             jiraSession.set(new WeakReference<JiraInteractionSession>(session));
         }
         return session;
-    }
-
-    /**
-     * Creates a remote access session to this JIRA.
-     *
-     * @return null if remote access is not supported.
-     * @deprecated please use {@link #getSession()} unless you really want a NEW session
-     */
-    @Deprecated
-    public JiraInteractionSession createSession() throws IOException, ServiceException {
-        if (userName == null || password == null) {
-            return null;    // remote access not supported
-        }
-        
-        return JiraSoapSession.createSession(this, url, userName, password, useHTTPAuth);
     }
 
     /**
@@ -709,11 +694,14 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
                 altUrl = new URL(alternativeUrl);
             }
 
-
-            JiraSite site = new JiraSite(new URL(url), altUrl, userName, password, false,
+            URL urlObject = new URL(url);
+            
+            // Instantiate JiraSite to do all validations done in constructor.
+            JiraSite site = new JiraSite(urlObject, altUrl, userName, password, false,
                     false, null, false, groupVisibility, roleVisibility, useHTTPAuth);
+            
             try {
-                site.createSession();
+                JiraSessionManager.createSession(site, urlObject, userName, password, false);
                 return FormValidation.ok("Success");
             } catch (AxisFault e) {
                 LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url,

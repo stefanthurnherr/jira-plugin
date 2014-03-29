@@ -30,7 +30,7 @@ public class JiraMailAddressResolver extends MailAddressResolver {
 
         for (JiraSite site : JiraProjectProperty.DESCRIPTOR.getSites()) {
             try {
-            	JiraInteractionSession session = site.createSession();
+            	JiraInteractionSession session = site.getSession();
             	String email = session.getEmailForUsername(username);           
                 if (email != null) {
                     email = unmaskEmail(email);

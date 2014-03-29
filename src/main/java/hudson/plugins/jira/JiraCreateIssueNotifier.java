@@ -288,7 +288,7 @@ public class JiraCreateIssueNotifier extends Notifier {
             throw new IllegalStateException("JIRA site needs to be configured in the project " + build.getFullDisplayName());
         }
 
-        JiraInteractionSession session = site.createSession();
+        JiraInteractionSession session = site.getSession();
         if (session == null) {
             throw new IllegalStateException("Remote SOAP access for JIRA isn't configured in Jenkins");
         }
