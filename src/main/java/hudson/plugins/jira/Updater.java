@@ -4,7 +4,7 @@ import hudson.Util;
 import hudson.model.*;
 import hudson.model.AbstractBuild.DependencyChange;
 import hudson.plugins.jira.listissuesparameter.JiraIssueParameterValue;
-import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemotePermissionException;
 import hudson.scm.ChangeLogSet.AffectedFile;
@@ -63,7 +63,7 @@ class Updater {
                 return true;    // nothing found here.
             }
 
-            JiraSession session = null;
+            JiraInteractionSession session = null;
             try {
                 session = site.createSession();
             } catch (ServiceException e) {
@@ -122,7 +122,7 @@ class Updater {
      */
     static void submitComments(
             AbstractBuild<?, ?> build, PrintStream logger, String jenkinsRootUrl,
-            List<JiraIssue> issues, JiraSession session,
+            List<JiraIssue> issues, JiraInteractionSession session,
             boolean useWikiStyleComments, boolean recordScmChanges, String groupVisibility, String roleVisibility) throws RemoteException {
         // copy to prevent ConcurrentModificationException
         List<JiraIssue> copy = new ArrayList<JiraIssue>(issues);
@@ -146,7 +146,7 @@ class Updater {
     }
 
     private static List<JiraIssue> getJiraIssues(
-            Set<String> ids, JiraSession session, PrintStream logger) throws RemoteException {
+            Set<String> ids, JiraInteractionSession session, PrintStream logger) throws RemoteException {
         List<JiraIssue> issues = new ArrayList<JiraIssue>(ids.size());
         for (String id : ids) {
             if (!session.existsIssue(id)) {

@@ -5,7 +5,7 @@ import hudson.Extension;
 import hudson.Launcher;
 import hudson.Util;
 import hudson.model.*;
-import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteComponent;
 import hudson.plugins.jira.soap.RemoteIssue;
@@ -155,7 +155,7 @@ public class JiraCreateIssueNotifier extends Notifier {
 
         String summary = "Test " + jobName + " failure - " + jenkinsURL;
 
-        JiraSession session = getJiraSession(build);
+        JiraInteractionSession session = getJiraSession(build);
         RemoteIssue issue = session.createIssue(projectKey, description, assignee, components, summary);
 
         //writing the issue-id to the file, which is present in job's directory.
@@ -174,7 +174,7 @@ public class JiraCreateIssueNotifier extends Notifier {
      */
     private String getStatus(AbstractBuild<?, ?> build, String id) throws ServiceException, IOException {
 
-        JiraSession session = getJiraSession(build);
+        JiraInteractionSession session = getJiraSession(build);
         RemoteIssue issue = session.getIssueByKey(id);
         return issue.getStatus();
     }
@@ -190,7 +190,7 @@ public class JiraCreateIssueNotifier extends Notifier {
      */
     private void addComment(AbstractBuild<?, ?> build, String id, String comment) throws ServiceException, IOException {
 
-        JiraSession session = getJiraSession(build);
+        JiraInteractionSession session = getJiraSession(build);
         session.addCommentWithoutConstrains(id, comment);
     }
 
@@ -209,7 +209,7 @@ public class JiraCreateIssueNotifier extends Notifier {
             return null;
         }
 
-        JiraSession session = getJiraSession(build);
+        JiraInteractionSession session = getJiraSession(build);
         RemoteComponent availableComponents[] = session.getComponents(projectKey);
 
         //To store all the componets of the particular project
@@ -281,14 +281,14 @@ public class JiraCreateIssueNotifier extends Notifier {
      * @throws ServiceException
      * @throws IOException
      */
-    private JiraSession getJiraSession(AbstractBuild<?, ?> build) throws ServiceException, IOException {
+    private JiraInteractionSession getJiraSession(AbstractBuild<?, ?> build) throws ServiceException, IOException {
 
         JiraSite site = JiraSite.get(build.getProject());
         if (site == null) {
             throw new IllegalStateException("JIRA site needs to be configured in the project " + build.getFullDisplayName());
         }
 
-        JiraSession session = site.createSession();
+        JiraInteractionSession session = site.createSession();
         if (session == null) {
             throw new IllegalStateException("Remote SOAP access for JIRA isn't configured in Jenkins");
         }

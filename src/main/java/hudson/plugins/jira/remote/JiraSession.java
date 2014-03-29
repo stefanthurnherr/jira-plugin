@@ -18,7 +18,7 @@ import static org.apache.commons.lang.StringUtils.isNotEmpty;
  *
  * @author Kohsuke Kawaguchi
  */
-public class JiraSession {
+public class JiraSession implements JiraInteractionSession {
     private static final Logger LOGGER = Logger.getLogger(JiraSession.class.getName());
 
     public final JiraSoapService service;
@@ -46,11 +46,9 @@ public class JiraSession {
         this.site = site;
     }
 
-    /**
-     * Returns the set of project keys (like MNG, JENKINS, etc) that are
-     * available in this JIRA.
-     * Guarantees to return all project keys in upper case.
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getProjectKeys()
+	 */
     public Set<String> getProjectKeys() throws RemoteException {
         if (projectKeys == null) {
             LOGGER.fine("Fetching remote project key list from "
@@ -66,12 +64,9 @@ public class JiraSession {
         return projectKeys;
     }
 
-    /**
-     * Adds a comment to the existing issue. Constrains the visibility of the
-     * comment the the supplied groupVisibility.
-     *
-     * @param groupVisibility
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#addComment(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
     public void addComment(String issueId, String comment,
                            String groupVisibility, String roleVisibility) throws RemoteException {
         RemoteComment rc = new RemoteComment();
@@ -96,12 +91,9 @@ public class JiraSession {
         service.addComment(token, issueId, rc);
     }
 
-    /**
-     * Gets the details of one issue.
-     *
-     * @param id Issue ID like "MNG-1235".
-     * @return null if no such issue exists.
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssue(java.lang.String)
+	 */
     public RemoteIssue getIssue(String id) throws RemoteException {
         if (existsIssue(id)) {
             return service.getIssue(token, id);
@@ -110,39 +102,25 @@ public class JiraSession {
         }
     }
 
-    /**
-     * Gets all issues that match the given JQL filter
-     *
-     * @param jqlSearch JQL query string to execute
-     * @return issues matching the JQL query
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesFromJqlSearch(java.lang.String)
+	 */
     public RemoteIssue[] getIssuesFromJqlSearch(final String jqlSearch)
             throws RemoteException {
         return service.getIssuesFromJqlSearch(token, jqlSearch, 50);
     }
 
-    /**
-     * Gets the details of a group, given a groupId. Used for validating group
-     * visibility.
-     *
-     * @param groupId like "Software Development"
-     * @return null if no such group exists
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getGroup(java.lang.String)
+	 */
     public RemoteGroup getGroup(String groupId) throws RemoteException {
         LOGGER.fine("Fetching groupInfo from " + groupId);
         return service.getGroup(token, groupId);
     }
 
-    /**
-     * Gets the details of a role, given a roleId. Used for validating role
-     * visibility.
-     * TODO: Cannot validate against the real project role the user have in the project,
-     * jira soap api has no such function!
-     *
-     * @param roleId like "Software Development"
-     * @return null if no such role exists
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getRole(java.lang.String)
+	 */
     public RemoteProjectRole getRole(String roleId) throws RemoteException {
         LOGGER.fine("Fetching roleInfo from " + roleId);
 
@@ -161,27 +139,18 @@ public class JiraSession {
         return null;
     }
 
-    /**
-     * Get all versions from the given project
-     *
-     * @param projectKey The key for the project
-     * @return An array of versions
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersions(java.lang.String)
+	 */
     public RemoteVersion[] getVersions(String projectKey) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey);
 
         return service.getVersions(token, projectKey);
     }
 
-    /**
-     * Get a version by its name
-     *
-     * @param projectKey The key for the project
-     * @param name       The version name
-     * @return A RemoteVersion, or null if not found
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersionByName(java.lang.String, java.lang.String)
+	 */
     public RemoteVersion getVersionByName(String projectKey, String name) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey);
         RemoteVersion[] versions = getVersions(projectKey);
@@ -196,10 +165,16 @@ public class JiraSession {
         return null;
     }
 
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesWithFixVersion(java.lang.String, java.lang.String)
+	 */
     public RemoteIssue[] getIssuesWithFixVersion(String projectKey, String version) throws RemoteException {
         return getIssuesWithFixVersion(projectKey, version, "");
     }
 
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesWithFixVersion(java.lang.String, java.lang.String, java.lang.String)
+	 */
     public RemoteIssue[] getIssuesWithFixVersion(String projectKey, String version, String filter) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey + " with fixVersion:" + version);
         if (isNotEmpty(filter)) {
@@ -208,37 +183,35 @@ public class JiraSession {
         return service.getIssuesFromJqlSearch(token, String.format("project = \"%s\" and fixVersion = \"%s\"", projectKey, version), Integer.MAX_VALUE);
     }
 
-    /**
-     * Get all issue types
-     *
-     * @return An array of issue types
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssueTypes()
+	 */
     public RemoteIssueType[] getIssueTypes() throws RemoteException {
         LOGGER.fine("Fetching issue types");
 
         return service.getIssueTypes(token);
     }
 
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#existsIssue(java.lang.String)
+	 */
     public boolean existsIssue(String id) throws RemoteException {
         return site.existsIssue(id);
     }
 
 
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#releaseVersion(java.lang.String, hudson.plugins.jira.soap.RemoteVersion)
+	 */
     public void releaseVersion(String projectKey, RemoteVersion version) throws RemoteException {
         LOGGER.fine("Releaseing version: " + version.getName());
 
         service.releaseVersion(token, projectKey, version);
     }
 
-    /**
-     * Replaces the fix version list of all issues matching the JQL Query with the version specified.
-     *
-     * @param projectKey The JIRA Project key
-     * @param version    The replacement version
-     * @param query      The JQL Query
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#migrateIssuesToFixVersion(java.lang.String, java.lang.String, java.lang.String)
+	 */
     public void migrateIssuesToFixVersion(String projectKey, String version, String query) throws RemoteException {
 
         RemoteVersion newVersion = getVersionByName(projectKey, version);
@@ -260,15 +233,9 @@ public class JiraSession {
         }
     }
 
-    /**
-     * Replaces the given fromVersion with toVersion in all issues matching the JQL query.
-     *
-     * @param projectKey  The JIRA Project
-     * @param fromVersion The name of the version to replace
-     * @param toVersion   The name of the replacement version
-     * @param query       The JQL Query
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#replaceFixVersion(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+	 */
     public void replaceFixVersion(String projectKey, String fromVersion, String toVersion, String query) throws RemoteException {
 
         RemoteVersion newVersion = getVersionByName(projectKey, toVersion);
@@ -299,15 +266,9 @@ public class JiraSession {
         }
     }
 
-    /**
-     * Progresses the issue's workflow by performing the specified action. The issue's new status is returned.
-     *
-     * @param issueKey
-     * @param workflowActionName
-     * @param fields
-     * @return The new status
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#progressWorkflowAction(java.lang.String, java.lang.String, hudson.plugins.jira.soap.RemoteFieldValue[])
+	 */
     public String progressWorkflowAction(String issueKey, String workflowActionName, RemoteFieldValue[] fields)
             throws RemoteException {
         LOGGER.fine("Progressing issue " + issueKey + " with workflow action: " + workflowActionName);
@@ -315,14 +276,9 @@ public class JiraSession {
         return getStatusById(issue.getStatus());
     }
 
-    /**
-     * Returns the matching action id for a given action name.
-     *
-     * @param issueKey
-     * @param workflowAction
-     * @return The action id, or null if the action cannot be found.
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getActionIdForIssue(java.lang.String, java.lang.String)
+	 */
     public String getActionIdForIssue(String issueKey, String workflowAction) throws RemoteException {
         RemoteNamedObject[] actions = service.getAvailableActions(token, issueKey);
 
@@ -337,13 +293,9 @@ public class JiraSession {
         return null;
     }
 
-    /**
-     * Returns the status name by status id.
-     *
-     * @param statusId
-     * @return
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getStatusById(java.lang.String)
+	 */
     public String getStatusById(String statusId) throws RemoteException {
         String status = getKnownStatuses().get(statusId);
 
@@ -376,17 +328,9 @@ public class JiraSession {
         return knownStatuses;
     }
 
-    /**
-     * Returns issue-id of the created issue
-     *
-     * @param projectKey
-     * @param description
-     * @param assignee
-     * @param components
-     * @param summary
-     * @return The issue id
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#createIssue(java.lang.String, java.lang.String, java.lang.String, hudson.plugins.jira.soap.RemoteComponent[], java.lang.String)
+	 */
     public RemoteIssue createIssue(String projectKey, String description, String assignee, RemoteComponent[] components, String summary) throws RemoteException {
         RemoteIssue issue = new RemoteIssue();
         issue.setProject(projectKey.toUpperCase());
@@ -400,51 +344,32 @@ public class JiraSession {
         return createdIssue;
     }
 
-    /**
-     * Adds a comment to the existing issue.There is no constrains to the visibility of the comment.
-     *
-     * @param issueId
-     * @param comment
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#addCommentWithoutConstrains(java.lang.String, java.lang.String)
+	 */
     public void addCommentWithoutConstrains(String issueId, String comment) throws RemoteException {
         RemoteComment rc = new RemoteComment();
         rc.setBody(comment);
         service.addComment(token, issueId, rc);
     }
 
-    /**
-     * Returns information about the specific issue as identified by the issue id
-     *
-     * @param issueId
-     * @return issue object
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssueByKey(java.lang.String)
+	 */
     public RemoteIssue getIssueByKey(String issueId) throws RemoteException {
         return service.getIssue(token, issueId);
     }
 
-    /**
-     * Returns all the components for the particular project
-     *
-     * @param projectKey
-     * @return An array of componets
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getComponents(java.lang.String)
+	 */
     public RemoteComponent[] getComponents(String projectKey) throws RemoteException {
         return service.getComponents(token, projectKey);
     }
 
-    /**
-     * Creates a new version and returns it
-     *
-     * @param version    version id to create
-     * @param projectKey
-     * @return
-     * @throws hudson.plugins.jira.soap.RemoteException
-     *
-     * @throws RemoteException
-     */
+    /* (non-Javadoc)
+	 * @see hudson.plugins.jira.remote.JiraInteractionSession#addVersion(java.lang.String, java.lang.String)
+	 */
     public RemoteVersion addVersion(String version, String projectKey) throws hudson.plugins.jira.soap.RemoteException, RemoteException {
         RemoteVersion newVersion = new RemoteVersion();
         newVersion.setName(version);

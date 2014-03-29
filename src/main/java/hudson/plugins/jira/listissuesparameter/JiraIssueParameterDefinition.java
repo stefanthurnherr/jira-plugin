@@ -19,7 +19,7 @@ import hudson.Extension;
 import hudson.model.AbstractProject;
 import hudson.model.ParameterDefinition;
 import hudson.model.ParameterValue;
-import hudson.plugins.jira.remote.JiraSession;
+import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSite;
 import hudson.plugins.jira.soap.RemoteIssue;
 import net.sf.json.JSONObject;
@@ -73,7 +73,7 @@ public class JiraIssueParameterDefinition extends ParameterDefinition {
         if (site == null)
             throw new IllegalStateException("JIRA site needs to be configured in the project " + context.getFullDisplayName());
 
-        JiraSession session = site.createSession();
+        JiraInteractionSession session = site.createSession();
         if (session == null) throw new IllegalStateException("Remote SOAP access for JIRA isn't configured in Jenkins");
 
         RemoteIssue[] issues = session.getIssuesFromJqlSearch(jiraIssueFilter);

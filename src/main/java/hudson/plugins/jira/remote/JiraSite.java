@@ -305,7 +305,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
                 if (projectUpdateLock.tryLock(3, TimeUnit.SECONDS)) {
                     try {
                         if (projects == null) {
-                            JiraSession session = getSession();
+                            JiraInteractionSession session = getSession();
                             if (session != null) {
                                 projects = Collections.unmodifiableSet(session.getProjectKeys());
                             }
@@ -385,7 +385,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         try {
             RemoteIssue remoteIssue = issueCache.get(id, new Callable<RemoteIssue>() {
                 public RemoteIssue call() throws Exception {
-                    JiraSession session = getSession();
+                    JiraInteractionSession session = getSession();
                     RemoteIssue issue = null;
                     if (session != null) {
                         issue = session.getIssue(id);
@@ -414,7 +414,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws ServiceException
      */
     public void releaseVersion(String projectKey, String versionName) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session != null) {
             RemoteVersion[] versions = session.getVersions(projectKey);
             if (versions == null) {
@@ -440,7 +440,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws ServiceException
      */
     public Set<JiraVersion> getVersions(String projectKey) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session == null) {
             return Collections.emptySet();
         }
@@ -484,7 +484,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws ServiceException
      */
     public String getReleaseNotesForFixVersion(String projectKey, String versionName, String filter) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session == null) {
             return "";
         }
@@ -546,7 +546,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws ServiceException
      */
     public Set<JiraIssue> getIssueWithFixVersion(String projectKey, String versionName) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session == null) {
             return Collections.emptySet();
         }
@@ -576,7 +576,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws ServiceException
      */
     public void replaceFixVersion(String projectKey, String fromVersion, String toVersion, String query) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session == null) {
             return;
         }
@@ -594,7 +594,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws ServiceException
      */
     public void migrateIssuesToFixVersion(String projectKey, String versionName, String query) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session == null) {
             return;
         }
@@ -615,7 +615,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      */
     public boolean progressMatchingIssues(String jqlSearch, String workflowActionName, String comment, PrintStream console) throws IOException,
             ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
 
         if (session == null) {
             console.println(Messages.Updater_FailedToConnect());
@@ -768,7 +768,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     private static final Logger LOGGER = Logger.getLogger(JiraSite.class.getName());
 
     public void addVersion(String version, String projectKey) throws IOException, ServiceException {
-        JiraSession session = getSession();
+        JiraInteractionSession session = getSession();
         if (session == null) {
             return;
         }

@@ -52,7 +52,7 @@ public class ChangingWorkflowTest {
     private JiraSession mockSession;
 
 
-    private JiraSession spySession;
+    private JiraInteractionSession spySession;
 
     @Before
     public void setupSpy() {
