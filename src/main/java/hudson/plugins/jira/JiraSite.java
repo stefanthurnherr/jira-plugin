@@ -12,7 +12,6 @@ import hudson.model.Hudson;
 import hudson.plugins.jira.Messages;
 import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSessionManager;
-import hudson.plugins.jira.remote.soap.JiraSoapSession;
 import hudson.plugins.jira.remote.soap.SoapUrlCheck;
 import hudson.plugins.jira.soap.*;
 import hudson.util.FormValidation;
@@ -146,7 +145,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
     @DataBoundConstructor
     public JiraSite(URL url, URL alternativeUrl, String userName, String password, boolean supportsWikiStyleComment, boolean recordScmChanges, String userPattern,
-                    boolean updateJiraIssueForAllStatus, String groupVisibility, String roleVisibility, boolean useHTTPAuth) {
+            boolean updateJiraIssueForAllStatus, String groupVisibility, String roleVisibility, boolean useHTTPAuth) {
         if (!url.toExternalForm().endsWith("/"))
             try {
                 url = new URL(url.toExternalForm() + "/");
@@ -588,8 +587,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * @throws IOException
      * @throws ServiceException
      */
-    public boolean progressMatchingIssues(String jqlSearch, String workflowActionName, String comment, PrintStream console) throws IOException,
-            ServiceException {
+    public boolean progressMatchingIssues(String jqlSearch, String workflowActionName, String comment, PrintStream console) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
 
         if (session == null) {
@@ -674,13 +672,13 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
          * Checks if the user name and password are valid.
          */
         public FormValidation doValidate(@QueryParameter String userName,
-                                         @QueryParameter String url,
-                                         @QueryParameter String password,
-                                         @QueryParameter String groupVisibility,
-                                         @QueryParameter String roleVisibility,
-                                         @QueryParameter boolean useHTTPAuth,
-                                         @QueryParameter String alternativeUrl)
-                throws IOException {
+                @QueryParameter String url,
+                @QueryParameter String password,
+                @QueryParameter String groupVisibility,
+                @QueryParameter String roleVisibility,
+                @QueryParameter boolean useHTTPAuth,
+                @QueryParameter String alternativeUrl)
+                        throws IOException {
             url = Util.fixEmpty(url);
             alternativeUrl = Util.fixEmpty(alternativeUrl);
             if (url == null) {// URL not entered yet
@@ -694,11 +692,11 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
             }
 
             URL urlObject = new URL(url);
-            
+
             // Instantiate JiraSite to do all validations done in constructor.
             JiraSite site = new JiraSite(urlObject, altUrl, userName, password, false,
                     false, null, false, groupVisibility, roleVisibility, useHTTPAuth);
-            
+
             try {
                 JiraSessionManager.createSession(site, urlObject, userName, password, false);
                 return FormValidation.ok("Success");
