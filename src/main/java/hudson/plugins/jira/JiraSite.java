@@ -684,8 +684,13 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
                     false, null, false, groupVisibility, roleVisibility, useHTTPAuth);
 
             try {
-                JiraSessionManager.createSession(site, urlObject, useHTTPAuth);
-                return FormValidation.ok("Success");
+                JiraInteractionSession jiraSession = JiraSessionManager.createSession(site, urlObject, useHTTPAuth);
+                //FIXME: after removal of SOAP, decide on whether to return null or throw exception when no success.
+                if (jiraSession == null) {
+                    return FormValidation.error("Failed to connect to JIRA at " + urlObject.toExternalForm() + ". Invalid url? Or no matching credentials defined?");
+                } else {
+                    return FormValidation.ok("Success");
+                }
             } catch (AxisFault e) {
                 LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url, e);
                 return FormValidation.error(e.getFaultString());
