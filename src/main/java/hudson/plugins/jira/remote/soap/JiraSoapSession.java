@@ -3,6 +3,7 @@ package hudson.plugins.jira.remote.soap;
 import hudson.plugins.jira.JiraSite;
 import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.soap.*;
+
 import java.io.IOException;
 import java.net.URL;
 import java.rmi.RemoteException;
@@ -48,6 +49,10 @@ public class JiraSoapSession implements JiraInteractionSession {
 
     //FIXME: first method argument 'site' shouldn't be necessary, check why.
     public static JiraSoapSession createSession(JiraSite site, URL url, String username, String password, boolean useHttpAuth) throws IOException, ServiceException {
+
+        if (username == null || password == null) {
+            return null;    // remote access not supported
+        }
 
         final JiraSoapServiceService jiraSoapServiceGetter = new JiraSoapServiceServiceLocator();
         final String urlExternalForm = url.toExternalForm();

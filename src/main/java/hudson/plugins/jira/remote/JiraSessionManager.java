@@ -2,10 +2,11 @@ package hudson.plugins.jira.remote;
 
 import hudson.model.Item;
 import hudson.plugins.jira.JiraSite;
-import hudson.plugins.jira.remote.soap.JiraSoapSession;
+import hudson.plugins.jira.remote.rest.JiraRestSession;
 import hudson.util.Secret;
 
 import java.io.IOException;
+import java.net.URISyntaxException;
 import java.net.URL;
 import java.util.LinkedList;
 import java.util.List;
@@ -36,16 +37,23 @@ public class JiraSessionManager {
     public static JiraInteractionSession createSession(JiraSite site, URL url, String username, String password, boolean useHttpAuth) throws IOException, ServiceException {
 
         UsernamePasswordCredentials credentials = lookupCredentials(url);
-        if (credentials != null) {
-            LOGGER.info("Trying to create JIRA session using domain-based credentials.");
-            return JiraSoapSession.createSession(site, url, credentials.getUsername(), Secret.toString(credentials.getPassword()), useHttpAuth);
-        }
 
-        LOGGER.info("No matching credentials found - trying to create JIRA session using good old user/pass.");
-        if (username == null || password == null) {
-            return null;    // remote access not supported
+        try {
+            if (credentials != null) {
+                LOGGER.info("Trying to create JIRA session for " + url.toURI() + " using domain-based credentials (" + credentials.getUsername() + ").");
+                return JiraRestSession.createSession(url.toURI(), credentials.getUsername(), Secret.toString(credentials.getPassword()));
+                //return JiraSoapSession.createSession(site, url, credentials.getUsername(), Secret.toString(credentials.getPassword()), useHttpAuth);
+            }
+
+            LOGGER.info("No matching credentials found - trying to create JIRA session using good old form user/pass.");
+
+            return JiraRestSession.createSession(url.toURI(), username, password);
+            //return JiraSoapSession.createSession(site, url, username, password, useHttpAuth);
+
+        } catch (URISyntaxException e) {
+            LOGGER.log(Level.SEVERE, "Cannot create session for invalid URI " + url.toExternalForm(), e);
+            return null;
         }
-        return JiraSoapSession.createSession(site, url, username, password, useHttpAuth);
     }
 
     private static UsernamePasswordCredentials lookupCredentials(URL url) {
@@ -68,7 +76,6 @@ public class JiraSessionManager {
             LOGGER.log(Level.WARNING, "Found no credentials matching JIRA url " + url.toExternalForm());
             return null;
         }
-
     }
 
 }

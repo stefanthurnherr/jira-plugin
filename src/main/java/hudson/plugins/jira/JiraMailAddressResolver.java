@@ -3,13 +3,12 @@ package hudson.plugins.jira;
 import hudson.Extension;
 import hudson.model.User;
 import hudson.plugins.jira.remote.JiraInteractionSession;
-import hudson.plugins.jira.remote.soap.JiraSoapSession;
-import hudson.plugins.jira.soap.RemoteUser;
 import hudson.tasks.MailAddressResolver;
 
 import javax.xml.rpc.ServiceException;
 
 import java.io.IOException;
+import java.util.concurrent.ExecutionException;
 import java.util.logging.Level;
 import java.util.logging.Logger;
 import java.util.regex.Pattern;
@@ -29,8 +28,8 @@ public class JiraMailAddressResolver extends MailAddressResolver {
 
         for (JiraSite site : JiraProjectProperty.DESCRIPTOR.getSites()) {
             try {
-            	JiraInteractionSession session = site.getSession();
-            	String email = session.getEmailForUsername(username);           
+                JiraInteractionSession session = site.getSession();
+                String email = session.getEmailForUsername(username);
                 if (email != null) {
                     email = unmaskEmail(email);
                     return email;
@@ -38,6 +37,10 @@ public class JiraMailAddressResolver extends MailAddressResolver {
             } catch (IOException ex) {
                 LOGGER.log(Level.WARNING, "Unable to create session with " + site.getName(), ex);
             } catch (ServiceException ex) {
+                LOGGER.log(Level.WARNING, "Unable to create session with " + site.getName(), ex);
+            } catch (InterruptedException ex) {
+                LOGGER.log(Level.WARNING, "Unable to create session with " + site.getName(), ex);
+            } catch (ExecutionException ex) {
                 LOGGER.log(Level.WARNING, "Unable to create session with " + site.getName(), ex);
             }
         }

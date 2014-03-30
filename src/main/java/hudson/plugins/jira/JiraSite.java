@@ -693,20 +693,18 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
             URL urlObject = new URL(url);
 
-            // Instantiate JiraSite to do all validations done in constructor.
+            // Instantiate JiraSite to run all validations done in constructor.
             JiraSite site = new JiraSite(urlObject, altUrl, userName, password, false,
                     false, null, false, groupVisibility, roleVisibility, useHTTPAuth);
 
             try {
-                JiraSessionManager.createSession(site, urlObject, userName, password, false);
+                JiraSessionManager.createSession(site, urlObject, userName, password, useHTTPAuth);
                 return FormValidation.ok("Success");
             } catch (AxisFault e) {
-                LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url,
-                        e);
+                LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url, e);
                 return FormValidation.error(e.getFaultString());
             } catch (ServiceException e) {
-                LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url,
-                        e);
+                LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url, e);
                 return FormValidation.error(e.getMessage());
             }
         }
