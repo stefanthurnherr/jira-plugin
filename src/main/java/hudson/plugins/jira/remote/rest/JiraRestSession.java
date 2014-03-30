@@ -9,6 +9,7 @@ import java.util.logging.Logger;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClientFactory;
+import com.atlassian.jira.rest.client.api.domain.ServerInfo;
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.atlassian.util.concurrent.Promise;
@@ -28,7 +29,6 @@ public class JiraRestSession implements JiraInteractionSession {
 
     private final JiraRestClient jiraRestClient;
 
-    //FIXME: first method argument 'site' shouldn't be necessary, check why.
     public static JiraRestSession createSession(URI jiraUri, String username, String password) {
 
         final JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
@@ -37,13 +37,13 @@ public class JiraRestSession implements JiraInteractionSession {
         JiraRestSession jiraRestSession = new JiraRestSession(jiraRestClient);
 
         try {
-            //FIXME: try to fetch email - for testing only.
-            String email = jiraRestSession.getEmailForUsername(username);
-            LOGGER.info("Successfully established Jira session with " + jiraUri + ", email for used user " + username + " is " + email);
+            ServerInfo serverInfo = jiraRestClient.getMetadataClient().getServerInfo().get();
+            String jiraVersion = serverInfo.getVersion();
+            LOGGER.info("Successfully connected to JIRAira instance, found version " + jiraVersion);
             return jiraRestSession;
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Successfully established JIRA session with " + jiraUri + " but could not fetch email address for used user " + username + ".", ex);
-            return jiraRestSession;
+            LOGGER.log(Level.WARNING, "Could not connect to JIRA instance at " + jiraUri, ex);
+            return null;
         }
     }
 

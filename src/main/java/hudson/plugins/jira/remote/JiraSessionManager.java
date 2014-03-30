@@ -45,7 +45,7 @@ public class JiraSessionManager {
                 //return JiraSoapSession.createSession(site, url, credentials.getUsername(), Secret.toString(credentials.getPassword()), useHttpAuth);
             }
 
-            LOGGER.info("No matching credentials found - trying to create JIRA session using good old form user/pass.");
+            LOGGER.info("No matching credentials found, cannot create JIRA session.");
 
             return null;
 

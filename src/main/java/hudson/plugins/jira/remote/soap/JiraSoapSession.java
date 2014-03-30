@@ -63,6 +63,7 @@ public class JiraSoapSession implements JiraInteractionSession {
                     username + ":" + password + "@" + url.getHost()) + "rpc/soap/jirasoapservice-v2";
             JiraSoapService service = jiraSoapServiceGetter.getJirasoapserviceV2(
                     new URL(httpAuthUrl));
+
             return new JiraSoapSession(site, urlExternalForm, service, null); //no need to login
         }
 
