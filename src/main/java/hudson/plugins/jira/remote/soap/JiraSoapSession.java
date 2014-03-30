@@ -1,20 +1,14 @@
 package hudson.plugins.jira.remote.soap;
 
-import hudson.Util;
 import hudson.plugins.jira.JiraSite;
-import hudson.plugins.jira.Messages;
 import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.soap.*;
-import hudson.util.FormValidation;
-
 import java.io.IOException;
-import java.net.MalformedURLException;
 import java.net.URL;
 import java.rmi.RemoteException;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Set;
-import java.util.logging.Level;
 import java.util.logging.Logger;
 
 import javax.xml.rpc.ServiceException;
@@ -33,7 +27,7 @@ public class JiraSoapSession implements JiraInteractionSession {
     private static final Logger LOGGER = Logger.getLogger(JiraSoapSession.class.getName());
 
     public final JiraSoapService service;
-    
+
     private final String urlExternalForm;
 
     /**
@@ -51,14 +45,14 @@ public class JiraSoapSession implements JiraInteractionSession {
      * This session is created for this site.
      */
     private final JiraSite site;
-    
+
     //FIXME: first method argument 'site' shouldn't be necessary, check why.
     public static JiraSoapSession createSession(JiraSite site, URL url, String username, String password, boolean useHttpAuth) throws IOException, ServiceException {
-    	
+
         final JiraSoapServiceService jiraSoapServiceGetter = new JiraSoapServiceServiceLocator();
         final String urlExternalForm = url.toExternalForm();
-    	
-    	if (useHttpAuth) {
+
+        if (useHttpAuth) {
             String httpAuthUrl = url.toExternalForm().replace(
                     url.getHost(),
                     username + ":" + password + "@" + url.getHost()) + "rpc/soap/jirasoapservice-v2";
@@ -69,13 +63,13 @@ public class JiraSoapSession implements JiraInteractionSession {
 
         JiraSoapService service = jiraSoapServiceGetter.getJirasoapserviceV2(
                 new URL(url, "rpc/soap/jirasoapservice-v2"));
-        
+
         final String jiraToken = service.login(username, password);
         return new JiraSoapSession(site, urlExternalForm, service, jiraToken);
     }
-    
+
     /* package */JiraSoapSession(JiraSite site, String urlExternalForm, JiraSoapService service,
-                             String token) {
+            String token) {
         this.service = service;
         this.urlExternalForm = urlExternalForm;
         this.token = token;
@@ -83,8 +77,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getProjectKeys()
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getProjectKeys()
+     */
     public Set<String> getProjectKeys() throws RemoteException {
         if (projectKeys == null) {
             LOGGER.fine("Fetching remote project key list from " + urlExternalForm);
@@ -100,10 +94,10 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#addComment(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#addComment(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     */
     public void addComment(String issueId, String comment,
-                           String groupVisibility, String roleVisibility) throws RemoteException {
+            String groupVisibility, String roleVisibility) throws RemoteException {
         RemoteComment rc = new RemoteComment();
         rc.setBody(comment);
 
@@ -127,8 +121,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssue(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssue(java.lang.String)
+     */
     public RemoteIssue getIssue(String id) throws RemoteException {
         if (existsIssue(id)) {
             return service.getIssue(token, id);
@@ -138,24 +132,24 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesFromJqlSearch(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesFromJqlSearch(java.lang.String)
+     */
     public RemoteIssue[] getIssuesFromJqlSearch(final String jqlSearch)
             throws RemoteException {
         return service.getIssuesFromJqlSearch(token, jqlSearch, 50);
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getGroup(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getGroup(java.lang.String)
+     */
     public RemoteGroup getGroup(String groupId) throws RemoteException {
         LOGGER.fine("Fetching groupInfo from " + groupId);
         return service.getGroup(token, groupId);
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getRole(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getRole(java.lang.String)
+     */
     public RemoteProjectRole getRole(String roleId) throws RemoteException {
         LOGGER.fine("Fetching roleInfo from " + roleId);
 
@@ -175,8 +169,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersions(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersions(java.lang.String)
+     */
     public RemoteVersion[] getVersions(String projectKey) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey);
 
@@ -184,8 +178,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersionByName(java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersionByName(java.lang.String, java.lang.String)
+     */
     public RemoteVersion getVersionByName(String projectKey, String name) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey);
         RemoteVersion[] versions = getVersions(projectKey);
@@ -201,15 +195,15 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesWithFixVersion(java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesWithFixVersion(java.lang.String, java.lang.String)
+     */
     public RemoteIssue[] getIssuesWithFixVersion(String projectKey, String version) throws RemoteException {
         return getIssuesWithFixVersion(projectKey, version, "");
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesWithFixVersion(java.lang.String, java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssuesWithFixVersion(java.lang.String, java.lang.String, java.lang.String)
+     */
     public RemoteIssue[] getIssuesWithFixVersion(String projectKey, String version, String filter) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey + " with fixVersion:" + version);
         if (isNotEmpty(filter)) {
@@ -219,8 +213,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssueTypes()
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssueTypes()
+     */
     public RemoteIssueType[] getIssueTypes() throws RemoteException {
         LOGGER.fine("Fetching issue types");
 
@@ -228,16 +222,16 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#existsIssue(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#existsIssue(java.lang.String)
+     */
     public boolean existsIssue(String id) throws RemoteException {
         return site.existsIssue(id);
     }
 
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#releaseVersion(java.lang.String, hudson.plugins.jira.soap.RemoteVersion)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#releaseVersion(java.lang.String, hudson.plugins.jira.soap.RemoteVersion)
+     */
     public void releaseVersion(String projectKey, RemoteVersion version) throws RemoteException {
         LOGGER.fine("Releaseing version: " + version.getName());
 
@@ -245,8 +239,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#migrateIssuesToFixVersion(java.lang.String, java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#migrateIssuesToFixVersion(java.lang.String, java.lang.String, java.lang.String)
+     */
     public void migrateIssuesToFixVersion(String projectKey, String version, String query) throws RemoteException {
 
         RemoteVersion newVersion = getVersionByName(projectKey, version);
@@ -269,8 +263,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#replaceFixVersion(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#replaceFixVersion(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
+     */
     public void replaceFixVersion(String projectKey, String fromVersion, String toVersion, String query) throws RemoteException {
 
         RemoteVersion newVersion = getVersionByName(projectKey, toVersion);
@@ -302,8 +296,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#progressWorkflowAction(java.lang.String, java.lang.String, hudson.plugins.jira.soap.RemoteFieldValue[])
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#progressWorkflowAction(java.lang.String, java.lang.String, hudson.plugins.jira.soap.RemoteFieldValue[])
+     */
     public String progressWorkflowAction(String issueKey, String workflowActionName, RemoteFieldValue[] fields)
             throws RemoteException {
         LOGGER.fine("Progressing issue " + issueKey + " with workflow action: " + workflowActionName);
@@ -312,8 +306,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getActionIdForIssue(java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getActionIdForIssue(java.lang.String, java.lang.String)
+     */
     public String getActionIdForIssue(String issueKey, String workflowAction) throws RemoteException {
         RemoteNamedObject[] actions = service.getAvailableActions(token, issueKey);
 
@@ -329,8 +323,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getStatusById(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getStatusById(java.lang.String)
+     */
     public String getStatusById(String statusId) throws RemoteException {
         String status = getKnownStatuses().get(statusId);
 
@@ -364,8 +358,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#createIssue(java.lang.String, java.lang.String, java.lang.String, hudson.plugins.jira.soap.RemoteComponent[], java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#createIssue(java.lang.String, java.lang.String, java.lang.String, hudson.plugins.jira.soap.RemoteComponent[], java.lang.String)
+     */
     public RemoteIssue createIssue(String projectKey, String description, String assignee, RemoteComponent[] components, String summary) throws RemoteException {
         RemoteIssue issue = new RemoteIssue();
         issue.setProject(projectKey.toUpperCase());
@@ -380,8 +374,8 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#addCommentWithoutConstrains(java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#addCommentWithoutConstrains(java.lang.String, java.lang.String)
+     */
     public void addCommentWithoutConstrains(String issueId, String comment) throws RemoteException {
         RemoteComment rc = new RemoteComment();
         rc.setBody(comment);
@@ -389,39 +383,39 @@ public class JiraSoapSession implements JiraInteractionSession {
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssueByKey(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getIssueByKey(java.lang.String)
+     */
     public RemoteIssue getIssueByKey(String issueId) throws RemoteException {
         return service.getIssue(token, issueId);
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getComponents(java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getComponents(java.lang.String)
+     */
     public RemoteComponent[] getComponents(String projectKey) throws RemoteException {
         return service.getComponents(token, projectKey);
     }
 
     /* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#addVersion(java.lang.String, java.lang.String)
-	 */
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#addVersion(java.lang.String, java.lang.String)
+     */
     public RemoteVersion addVersion(String version, String projectKey) throws hudson.plugins.jira.soap.RemoteException, RemoteException {
         RemoteVersion newVersion = new RemoteVersion();
         newVersion.setName(version);
         return service.addVersion(token, projectKey, newVersion);
     }
 
-	/* (non-Javadoc)
-	 * @see hudson.plugins.jira.remote.JiraInteractionSession#getEmailForUsername(java.lang.String)
-	 */
-	public String getEmailForUsername(String username) throws RemoteException {
-		RemoteUser user = service.getUser(token, username);
+    /* (non-Javadoc)
+     * @see hudson.plugins.jira.remote.JiraInteractionSession#getEmailForUsername(java.lang.String)
+     */
+    public String getEmailForUsername(String username) throws RemoteException {
+        RemoteUser user = service.getUser(token, username);
         if (user != null) {
             String email = user.getEmail();
             if (email != null) {
                 return email;
             }
         }
-		return null;
-	}
+        return null;
+    }
 }
