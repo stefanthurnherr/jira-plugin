@@ -78,16 +78,6 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     public final boolean useHTTPAuth;
 
     /**
-     * User name needed to login. Optional.
-     */
-    public final String userName;
-
-    /**
-     * Password needed to login. Optional.
-     */
-    public final String password;
-
-    /**
      * Group visibility to constrain the visibility of the added comment. Optional.
      */
     public final String groupVisibility;
@@ -144,7 +134,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     private transient ThreadLocal<WeakReference<JiraInteractionSession>> jiraSession = new ThreadLocal<WeakReference<JiraInteractionSession>>();
 
     @DataBoundConstructor
-    public JiraSite(URL url, URL alternativeUrl, String userName, String password, boolean supportsWikiStyleComment, boolean recordScmChanges, String userPattern,
+    public JiraSite(URL url, URL alternativeUrl, boolean supportsWikiStyleComment, boolean recordScmChanges, String userPattern,
             boolean updateJiraIssueForAllStatus, String groupVisibility, String roleVisibility, boolean useHTTPAuth) {
         if (!url.toExternalForm().endsWith("/"))
             try {
@@ -162,8 +152,6 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
         this.url = url;
         this.alternativeUrl = alternativeUrl;
-        this.userName = Util.fixEmpty(userName);
-        this.password = Util.fixEmpty(password);
         this.supportsWikiStyleComment = supportsWikiStyleComment;
         this.recordScmChanges = recordScmChanges;
         this.userPattern = Util.fixEmpty(userPattern);
@@ -215,7 +203,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         if (session == null) {
             // TODO: we should check for session timeout, too (but there's no method for that on JiraSoapService)
             // Currently no real problem, as we're using a weak reference for the session, so it will be GC'ed very quickly
-            session = JiraSessionManager.createSession(this, url, userName, password, useHTTPAuth);
+            session = JiraSessionManager.createSession(this, url, useHTTPAuth);
             jiraSession.set(new WeakReference<JiraInteractionSession>(session));
         }
         return session;
@@ -669,11 +657,9 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         }
 
         /**
-         * Checks if the user name and password are valid.
+         * Checks if all the input field values are valid.
          */
-        public FormValidation doValidate(@QueryParameter String userName,
-                @QueryParameter String url,
-                @QueryParameter String password,
+        public FormValidation doValidate(@QueryParameter String url,
                 @QueryParameter String groupVisibility,
                 @QueryParameter String roleVisibility,
                 @QueryParameter boolean useHTTPAuth,
@@ -694,11 +680,11 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
             URL urlObject = new URL(url);
 
             // Instantiate JiraSite to run all validations done in constructor.
-            JiraSite site = new JiraSite(urlObject, altUrl, userName, password, false,
+            JiraSite site = new JiraSite(urlObject, altUrl, false,
                     false, null, false, groupVisibility, roleVisibility, useHTTPAuth);
 
             try {
-                JiraSessionManager.createSession(site, urlObject, userName, password, useHTTPAuth);
+                JiraSessionManager.createSession(site, urlObject, useHTTPAuth);
                 return FormValidation.ok("Success");
             } catch (AxisFault e) {
                 LOGGER.log(Level.WARNING, "Failed to login to JIRA at " + url, e);

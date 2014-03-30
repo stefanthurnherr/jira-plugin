@@ -35,13 +35,14 @@ public class JiraRestSession implements JiraInteractionSession {
         final JiraRestClient jiraRestClient = factory.createWithBasicHttpAuthentication(jiraUri, username, password);
 
         JiraRestSession jiraRestSession = new JiraRestSession(jiraRestClient);
+
         try {
             //FIXME: try to fetch email - for testing only.
             String email = jiraRestSession.getEmailForUsername(username);
-            LOGGER.info("Successfully established Jira session with " + jiraUri + ", email for used user is " + email);
+            LOGGER.info("Successfully established Jira session with " + jiraUri + ", email for used user " + username + " is " + email);
             return jiraRestSession;
         } catch (Exception ex) {
-            LOGGER.log(Level.WARNING, "Successfully established JIRA session with " + jiraUri + " but could not fetch email address for used user.", ex);
+            LOGGER.log(Level.WARNING, "Successfully established JIRA session with " + jiraUri + " but could not fetch email address for used user " + username + ".", ex);
             return jiraRestSession;
         }
     }

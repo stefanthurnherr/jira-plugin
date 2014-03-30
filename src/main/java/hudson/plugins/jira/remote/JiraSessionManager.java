@@ -30,11 +30,11 @@ public class JiraSessionManager {
     /**
      * Creates a remote access session to this JIRA.
      *
-     * @return null if remote access is not supported.
+     * @return null if session creation did not succeed
      * @deprecated please use {@link JiraSite#getSession()} unless you really want a NEW session
      */
     @Deprecated
-    public static JiraInteractionSession createSession(JiraSite site, URL url, String username, String password, boolean useHttpAuth) throws IOException, ServiceException {
+    public static JiraInteractionSession createSession(JiraSite site, URL url, boolean useHttpAuth) throws IOException, ServiceException {
 
         UsernamePasswordCredentials credentials = lookupCredentials(url);
 
@@ -47,8 +47,7 @@ public class JiraSessionManager {
 
             LOGGER.info("No matching credentials found - trying to create JIRA session using good old form user/pass.");
 
-            return JiraRestSession.createSession(url.toURI(), username, password);
-            //return JiraSoapSession.createSession(site, url, username, password, useHttpAuth);
+            return null;
 
         } catch (URISyntaxException e) {
             LOGGER.log(Level.SEVERE, "Cannot create session for invalid URI " + url.toExternalForm(), e);
