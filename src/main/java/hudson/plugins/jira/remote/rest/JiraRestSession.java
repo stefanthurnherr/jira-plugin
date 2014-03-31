@@ -20,7 +20,6 @@ import hudson.plugins.jira.soap.RemoteFieldValue;
 import hudson.plugins.jira.soap.RemoteGroup;
 import hudson.plugins.jira.soap.RemoteIssue;
 import hudson.plugins.jira.soap.RemoteIssueType;
-import hudson.plugins.jira.soap.RemoteProjectRole;
 import hudson.plugins.jira.soap.RemoteVersion;
 
 /**
@@ -57,6 +56,10 @@ public class JiraRestSession implements JiraInteractionSession {
         this.jiraRestClient = jiraRestClient;
     }
 
+    private <T> T throwNotImplementedYet() throws RuntimeException {
+        throw new RuntimeException("This functionality is not implemented yet for REST-based JIRA access.");
+    }
+
     public String getEmailForUsername(String username) throws RemoteException, InterruptedException, ExecutionException {
         Promise<User> userPromise = jiraRestClient.getUserClient().getUser(username);
         User user = userPromise.get();
@@ -64,136 +67,98 @@ public class JiraRestSession implements JiraInteractionSession {
     }
 
     public Set<String> getProjectKeys() throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
-    public void addComment(String issueId, String comment,
-            String groupVisibility, String roleVisibility)
-                    throws RemoteException {
-        // TODO Auto-generated method stub
-
+    public void addComment(String issueId, String comment, String groupVisibility, String roleVisibility) throws RemoteException {
+        throwNotImplementedYet();
     }
 
     public RemoteIssue getIssue(String id) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteIssue[] getIssuesFromJqlSearch(String jqlSearch)
             throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteGroup getGroup(String groupId) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public RemoteProjectRole getRole(String roleId) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteVersion[] getVersions(String projectKey)
             throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public RemoteVersion getVersionByName(String projectKey, String name)
-            throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteIssue[] getIssuesWithFixVersion(String projectKey,
             String version) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteIssue[] getIssuesWithFixVersion(String projectKey,
             String version, String filter) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteIssueType[] getIssueTypes() throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public boolean existsIssue(String id) throws RemoteException {
-        // TODO Auto-generated method stub
-        return false;
+        return throwNotImplementedYet();
     }
 
     public void releaseVersion(String projectKey, RemoteVersion version)
             throws RemoteException {
-        // TODO Auto-generated method stub
-
+        throwNotImplementedYet();
     }
 
     public void migrateIssuesToFixVersion(String projectKey, String version,
             String query) throws RemoteException {
-        // TODO Auto-generated method stub
-
+        throwNotImplementedYet();
     }
 
     public void replaceFixVersion(String projectKey, String fromVersion,
             String toVersion, String query) throws RemoteException {
-        // TODO Auto-generated method stub
-
+        throwNotImplementedYet();
     }
 
     public String progressWorkflowAction(String issueKey,
             String workflowActionName, RemoteFieldValue[] fields)
                     throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public String getActionIdForIssue(String issueKey, String workflowAction)
             throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
-    }
-
-    public String getStatusById(String statusId) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteIssue createIssue(String projectKey, String description,
             String assignee, RemoteComponent[] components, String summary)
                     throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public void addCommentWithoutConstrains(String issueId, String comment)
             throws RemoteException {
-        // TODO Auto-generated method stub
-
+        throwNotImplementedYet();
     }
 
     public RemoteIssue getIssueByKey(String issueId) throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteComponent[] getComponents(String projectKey)
             throws RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
     public RemoteVersion addVersion(String version, String projectKey)
             throws hudson.plugins.jira.soap.RemoteException, RemoteException {
-        // TODO Auto-generated method stub
-        return null;
+        return throwNotImplementedYet();
     }
 
 }
