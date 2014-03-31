@@ -61,19 +61,19 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     public static final Pattern DEFAULT_ISSUE_PATTERN = Pattern.compile("([a-zA-Z][a-zA-Z0-9_]+-[1-9][0-9]*)([^.]|\\.[^0-9]|\\.$|$)");
 
     /**
-     * URL of JIRA for Jenkins access, like <tt>http://jira.codehaus.org/</tt>.
+     * URL of JIRA for Jenkins access, like <tt>http://issues.jenkins-ci.org/</tt>.
      * Mandatory. Normalized to end with '/'
      */
     public final URL url;
 
     /**
-     * URL of JIRA for normal access, like <tt>http://jira.codehaus.org/</tt>.
+     * URL of JIRA for normal access, like <tt>http://issues.jenkins-ci.org/</tt>.
      * Mandatory. Normalized to end with '/'
      */
     public final URL alternativeUrl;
 
     /**
-     * Jira requires HTTP Authentication for login
+     * Whether the JIRA instance requires HTTP Basic Authentication for login
      */
     public final boolean useHTTPAuth;
 
@@ -106,7 +106,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      */
     private final String userPattern;
 
-    private transient Pattern userPat;
+    private transient Pattern userPatternCompiled;
 
     /**
      * updated jira issue for all status
@@ -156,9 +156,9 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         this.recordScmChanges = recordScmChanges;
         this.userPattern = Util.fixEmpty(userPattern);
         if (this.userPattern != null) {
-            this.userPat = Pattern.compile(this.userPattern);
+            this.userPatternCompiled = Pattern.compile(this.userPattern);
         } else {
-            this.userPat = null;
+            this.userPatternCompiled = null;
         }
 
         this.updateJiraIssueForAllStatus = updateJiraIssueForAllStatus;
@@ -187,9 +187,9 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
     /**
      * Gets a remote access session to this JIRA site.
-     * Creates one if none exists already.
+     * Creates one if none exists yet.
      *
-     * @return null if remote access is not supported.
+     * @return null if remote access is not supported
      */
     @Nullable
     public JiraInteractionSession getSession() throws IOException, ServiceException {
@@ -240,13 +240,13 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
             return null;
         }
 
-        if (userPat == null) {
+        if (userPatternCompiled == null) {
             // We don't care about any thread race- or visibility issues here.
             // The worst thing which could happen, is that the pattern
             // is compiled multiple times.
-            userPat = Pattern.compile(userPattern);
+            userPatternCompiled = Pattern.compile(userPattern);
         }
-        return userPat;
+        return userPatternCompiled;
     }
 
     public Pattern getIssuePattern() {
@@ -258,8 +258,8 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     }
 
     /**
-     * Gets the list of project IDs in this JIRA.
-     * This information could be bit old, or it can be null.
+     * Gets the list of project IDs in this JIRA instance.
+     * This information could be a bit old, or it can be null.
      */
     public Set<String> getProjectKeys() {
         if (projects == null) {
@@ -339,7 +339,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     private static final RemoteIssue NULL = new RemoteIssue();
 
     /**
-     * Returns the remote issue with the given id or <code>null</code> if it wasn't found.
+     * @return the remote issue with the given id or <code>null</code> if it wasn't found
      */
     @CheckForNull
     public JiraIssue getIssue(final String id) throws IOException, ServiceException {
@@ -368,12 +368,10 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     }
 
     /**
-     * Release a given version.
+     * Releases a given version.
      *
-     * @param projectKey  The Project Key
-     * @param versionName The name of the version
-     * @throws IOException
-     * @throws ServiceException
+     * @param projectKey  The project key
+     * @param versionName The name of the version to release
      */
     public void releaseVersion(String projectKey, String versionName) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
@@ -394,12 +392,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     }
 
     /**
-     * Returns all versions for the given project key.
-     *
-     * @param projectKey Project Key
-     * @return A set of JiraVersions
-     * @throws IOException
-     * @throws ServiceException
+     * @return all versions for the given project key
      */
     public Set<JiraVersion> getVersions(String projectKey) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
@@ -423,13 +416,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     }
 
     /**
-     * Generates release notes for a given version.
-     *
-     * @param projectKey
-     * @param versionName
-     * @return release notes
-     * @throws IOException
-     * @throws ServiceException
+     * Generates release notes for the given version.
      */
     public String getReleaseNotesForFixVersion(String projectKey, String versionName) throws IOException, ServiceException {
         return getReleaseNotesForFixVersion(projectKey, versionName, "");
@@ -437,13 +424,9 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
     /**
      * Generates release notes for a given version.
-     *
-     * @param projectKey
-     * @param versionName
-     * @param filter      Additional JQL Filter. Example: status in (Resolved,Closed)
-     * @return release notes
-     * @throws IOException
-     * @throws ServiceException
+     * 
+     * @param filter
+     *            Additional JQL Filter. Example: status in (Resolved,Closed)
      */
     public String getReleaseNotesForFixVersion(String projectKey, String versionName, String filter) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
@@ -500,12 +483,6 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
     /**
      * Gets a set of issues that have the given fixVersion associated with them.
-     *
-     * @param projectKey  The project key
-     * @param versionName The fixVersion
-     * @return A set of JiraIssues
-     * @throws IOException
-     * @throws ServiceException
      */
     public Set<JiraIssue> getIssueWithFixVersion(String projectKey, String versionName) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
@@ -530,12 +507,6 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
     /**
      * Migrates issues matching the jql query provided to a new fix version.
-     *
-     * @param projectKey The project key
-     * @param toVersion  The new fixVersion
-     * @param query      A JQL Query
-     * @throws IOException
-     * @throws ServiceException
      */
     public void replaceFixVersion(String projectKey, String fromVersion, String toVersion, String query) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
@@ -547,13 +518,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     }
 
     /**
-     * Migrates issues matching the jql query provided to a new fix version.
-     *
-     * @param projectKey  The project key
-     * @param versionName The new fixVersion
-     * @param query       A JQL Query
-     * @throws IOException
-     * @throws ServiceException
+     * Migrates issues matching the specified jql query to a new fix version.
      */
     public void migrateIssuesToFixVersion(String projectKey, String versionName, String query) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
@@ -567,13 +532,6 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     /**
      * Progresses all issues matching the JQL search, using the given workflow action. Optionally
      * adds a comment to the issue(s) at the same time.
-     *
-     * @param jqlSearch
-     * @param workflowActionName
-     * @param comment
-     * @param console
-     * @throws IOException
-     * @throws ServiceException
      */
     public boolean progressMatchingIssues(String jqlSearch, String workflowActionName, String comment, PrintStream console) throws IOException, ServiceException {
         JiraInteractionSession session = getSession();
