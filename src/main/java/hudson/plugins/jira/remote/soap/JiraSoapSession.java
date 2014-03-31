@@ -153,10 +153,16 @@ public class JiraSoapSession implements JiraInteractionSession {
         return service.getGroup(token, groupId);
     }
 
-    /* (non-Javadoc)
-     * @see hudson.plugins.jira.remote.JiraInteractionSession#getRole(java.lang.String)
+    /**
+     * Gets the details of a role, given a roleId. Used for validating role
+     * visibility. TODO: Cannot validate against the real project role the user
+     * have in the project, jira soap api has no such function!
+     * 
+     * @param roleId
+     *            like "Software Development"
+     * @return null if no such role exists
      */
-    public RemoteProjectRole getRole(String roleId) throws RemoteException {
+    private RemoteProjectRole getRole(String roleId) throws RemoteException {
         LOGGER.fine("Fetching roleInfo from " + roleId);
 
         RemoteProjectRole[] roles = service.getProjectRoles(token);
@@ -183,10 +189,12 @@ public class JiraSoapSession implements JiraInteractionSession {
         return service.getVersions(token, projectKey);
     }
 
-    /* (non-Javadoc)
-     * @see hudson.plugins.jira.remote.JiraInteractionSession#getVersionByName(java.lang.String, java.lang.String)
+    /**
+     * Gets a version of a JIRA project by its name
+     *
+     * @return A RemoteVersion, or null if not found
      */
-    public RemoteVersion getVersionByName(String projectKey, String name) throws RemoteException {
+    private RemoteVersion getVersionByName(String projectKey, String name) throws RemoteException {
         LOGGER.fine("Fetching versions from project: " + projectKey);
         RemoteVersion[] versions = getVersions(projectKey);
         if (versions == null) {
@@ -328,10 +336,11 @@ public class JiraSoapSession implements JiraInteractionSession {
         return null;
     }
 
-    /* (non-Javadoc)
-     * @see hudson.plugins.jira.remote.JiraInteractionSession#getStatusById(java.lang.String)
+
+    /**
+     * Returns the name of a status identified by status id.
      */
-    public String getStatusById(String statusId) throws RemoteException {
+    private String getStatusById(String statusId) throws RemoteException {
         String status = getKnownStatuses().get(statusId);
 
         if (status == null) {

@@ -5,7 +5,6 @@ import hudson.plugins.jira.soap.RemoteFieldValue;
 import hudson.plugins.jira.soap.RemoteGroup;
 import hudson.plugins.jira.soap.RemoteIssue;
 import hudson.plugins.jira.soap.RemoteIssueType;
-import hudson.plugins.jira.soap.RemoteProjectRole;
 import hudson.plugins.jira.soap.RemoteVersion;
 
 import java.rmi.RemoteException;
@@ -57,34 +56,13 @@ public interface JiraInteractionSession {
      *            like "Software Development"
      * @return null if no such group exists
      */
-    //FIXME: only used internally in SOAP impl
+    //FIXME: used internally in SOAP impl, and in unit test
     RemoteGroup getGroup(String groupId) throws RemoteException;
-
-    /**
-     * Gets the details of a role, given a roleId. Used for validating role
-     * visibility. TODO: Cannot validate against the real project role the user
-     * have in the project, jira soap api has no such function!
-     * 
-     * @param roleId
-     *            like "Software Development"
-     * @return null if no such role exists
-     */
-    //FIXME: only used in internally in SOAP impl
-    RemoteProjectRole getRole(String roleId) throws RemoteException;
 
     /**
      * @return all versions of the specified JIRA project
      */
     RemoteVersion[] getVersions(String projectKey) throws RemoteException;
-
-    /**
-     * Gets a version of a JIRA project by its name
-     *
-     * @return A RemoteVersion, or null if not found
-     */
-    //FIXME: only used internally in SOAP impl
-    RemoteVersion getVersionByName(String projectKey, String name)
-            throws RemoteException;
 
     /**
      * Gets alls issues having the specified project and fixVersion..
@@ -146,12 +124,6 @@ public interface JiraInteractionSession {
      */
     String getActionIdForIssue(String issueKey, String workflowAction)
             throws RemoteException;
-
-    /**
-     * Returns the name of a status identified by status id.
-     */
-    //FIXME: only used internally in SOAP impl
-    String getStatusById(String statusId) throws RemoteException;
 
     /**
      * Creates a new issue with the specified fields and returns it.
