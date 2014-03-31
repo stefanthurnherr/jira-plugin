@@ -14,6 +14,10 @@ import java.util.logging.Logger;
 
 import javax.xml.rpc.ServiceException;
 
+import com.atlassian.jira.rest.client.api.domain.BasicProject;
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.util.concurrent.Promise;
+
 import static org.apache.commons.lang.StringUtils.isNotEmpty;
 
 /**
@@ -99,6 +103,10 @@ public class JiraSoapSession implements JiraInteractionSession {
         return projectKeys;
     }
 
+    public Promise<Iterable<BasicProject>> getProjectKeysAsync() {
+        throw new RuntimeException("async not impl for SOAP API.");
+    }
+
     /* (non-Javadoc)
      * @see hudson.plugins.jira.remote.JiraInteractionSession#addComment(java.lang.String, java.lang.String, java.lang.String, java.lang.String)
      */
@@ -135,6 +143,10 @@ public class JiraSoapSession implements JiraInteractionSession {
         } else {
             return null;
         }
+    }
+
+    public Promise<Issue> getIssueAsync(String id) {
+        throw new RuntimeException("Async calls not supported by SOAP API.");
     }
 
     /* (non-Javadoc)

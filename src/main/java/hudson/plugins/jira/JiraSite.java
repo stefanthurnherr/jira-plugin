@@ -1,5 +1,8 @@
 package hudson.plugins.jira;
 
+import com.atlassian.jira.rest.client.api.domain.BasicProject;
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.util.concurrent.Promise;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
@@ -31,7 +34,6 @@ import java.lang.ref.WeakReference;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.util.*;
-import java.util.concurrent.Callable;
 import java.util.concurrent.ExecutionException;
 import java.util.concurrent.TimeUnit;
 import java.util.concurrent.locks.Lock;
@@ -269,13 +271,23 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
                         if (projects == null) {
                             JiraInteractionSession session = getSession();
                             if (session != null) {
-                                projects = Collections.unmodifiableSet(session.getProjectKeys());
+
+                                //Set<String> projectKeys = session.getProjectKeys();
+                                Promise<Iterable<BasicProject>> projectKeysAsync = session.getProjectKeysAsync();
+                                Set<String> projectKeys = new HashSet<String>();
+                                for (BasicProject project : projectKeysAsync.get()) {
+                                    projectKeys.add(project.getKey());
+                                }
+
+                                projects = Collections.unmodifiableSet(projectKeys);
                             }
                         }
                     } catch (IOException e) {
                         // in case of error, set empty set to avoid trying the same thing repeatedly.
                         LOGGER.log(Level.WARNING, "Failed to obtain JIRA project list", e);
                     } catch (ServiceException e) {
+                        LOGGER.log(Level.WARNING, "Failed to obtain JIRA project list", e);
+                    } catch (ExecutionException e) {
                         LOGGER.log(Level.WARNING, "Failed to obtain JIRA project list", e);
                     } finally {
                         projectUpdateLock.unlock();
@@ -345,26 +357,38 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     public JiraIssue getIssue(final String id) throws IOException, ServiceException {
 
         try {
-            RemoteIssue remoteIssue = issueCache.get(id, new Callable<RemoteIssue>() {
-                public RemoteIssue call() throws Exception {
-                    JiraInteractionSession session = getSession();
-                    RemoteIssue issue = null;
-                    if (session != null) {
-                        issue = session.getIssue(id);
-                    }
-
-                    return issue != null ? issue : NULL;
-                }
-            });
-
-            if (remoteIssue == NULL) {
-                return null;
-            }
-
-            return new JiraIssue(remoteIssue);
+            Promise<Issue> issueAsync = getSession().getIssueAsync(id);
+            Issue issue = issueAsync.get();
+            return new JiraIssue(issue.getKey(), issue.getSummary());
+        } catch (InterruptedException e) {
+            LOGGER.warning("InterruptedException: Could not get issue " + id);
+            throw new ServiceException(e);
         } catch (ExecutionException e) {
+            LOGGER.warning("ExecutionException: Could not get issue " + id);
             throw new ServiceException(e);
         }
+
+        //        try {
+        //            RemoteIssue remoteIssue = issueCache.get(id, new Callable<RemoteIssue>() {
+        //                public RemoteIssue call() throws Exception {
+        //                    JiraInteractionSession session = getSession();
+        //                    RemoteIssue issue = null;
+        //                    if (session != null) {
+        //                        issue = session.getIssue(id);
+        //                    }
+        //
+        //                    return issue != null ? issue : NULL;
+        //                }
+        //            });
+        //
+        //            if (remoteIssue == NULL) {
+        //                return null;
+        //            }
+        //
+        //            return new JiraIssue(remoteIssue);
+        //        } catch (ExecutionException e) {
+        //            throw new ServiceException(e);
+        //        }
     }
 
     /**

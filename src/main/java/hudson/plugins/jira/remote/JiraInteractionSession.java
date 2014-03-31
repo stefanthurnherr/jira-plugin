@@ -11,6 +11,10 @@ import java.rmi.RemoteException;
 import java.util.Set;
 import java.util.concurrent.ExecutionException;
 
+import com.atlassian.jira.rest.client.api.domain.BasicProject;
+import com.atlassian.jira.rest.client.api.domain.Issue;
+import com.atlassian.util.concurrent.Promise;
+
 public interface JiraInteractionSession {
 
     /**
@@ -25,6 +29,9 @@ public interface JiraInteractionSession {
      * case.
      */
     Set<String> getProjectKeys() throws RemoteException;
+
+    Promise<Iterable<BasicProject>> getProjectKeysAsync();
+
 
     /**
      * Adds a comment to the existing issue. Constrains the visibility of the
@@ -41,6 +48,8 @@ public interface JiraInteractionSession {
      * @return null if no such issue exists
      */
     RemoteIssue getIssue(String id) throws RemoteException;
+
+    Promise<Issue> getIssueAsync(String id);
 
     /**
      * Gets all issues that match the given JQL filter.

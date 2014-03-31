@@ -9,6 +9,8 @@ import java.util.logging.Logger;
 
 import com.atlassian.jira.rest.client.api.JiraRestClient;
 import com.atlassian.jira.rest.client.api.JiraRestClientFactory;
+import com.atlassian.jira.rest.client.api.domain.BasicProject;
+import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.ServerInfo;
 import com.atlassian.jira.rest.client.api.domain.User;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
@@ -44,7 +46,7 @@ public class JiraRestSession implements JiraInteractionSession {
             //FIXME: access to /serverInfo resource seems not allowed for anonymous users - find better solution.
             ServerInfo serverInfo = jiraRestClient.getMetadataClient().getServerInfo().get();
             String jiraVersion = serverInfo.getVersion();
-            LOGGER.info("Successfully connected to JIRAira instance, found version " + jiraVersion);
+            LOGGER.info("Successfully connected to JIRA instance, found version " + jiraVersion);
             return jiraRestSession;
         } catch (Exception ex) {
             LOGGER.log(Level.WARNING, "Could not connect to JIRA instance at " + jiraUri, ex);
@@ -70,12 +72,20 @@ public class JiraRestSession implements JiraInteractionSession {
         return throwNotImplementedYet();
     }
 
+    public Promise<Iterable<BasicProject>> getProjectKeysAsync() {
+        return jiraRestClient.getProjectClient().getAllProjects();
+    }
+
     public void addComment(String issueId, String comment, String groupVisibility, String roleVisibility) throws RemoteException {
         throwNotImplementedYet();
     }
 
     public RemoteIssue getIssue(String id) throws RemoteException {
         return throwNotImplementedYet();
+    }
+
+    public Promise<Issue> getIssueAsync(String id) {
+        return jiraRestClient.getIssueClient().getIssue(id);
     }
 
     public RemoteIssue[] getIssuesFromJqlSearch(String jqlSearch)
@@ -107,7 +117,7 @@ public class JiraRestSession implements JiraInteractionSession {
     }
 
     public boolean existsIssue(String id) throws RemoteException {
-        return throwNotImplementedYet();
+        return (Boolean)throwNotImplementedYet();
     }
 
     public void releaseVersion(String projectKey, RemoteVersion version)
