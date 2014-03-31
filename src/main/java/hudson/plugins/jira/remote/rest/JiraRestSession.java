@@ -23,6 +23,11 @@ import hudson.plugins.jira.soap.RemoteIssueType;
 import hudson.plugins.jira.soap.RemoteProjectRole;
 import hudson.plugins.jira.soap.RemoteVersion;
 
+/**
+ * Allows interaction with a JIRA instance using its REST API.
+ *
+ * @author Stefan Thurnherr
+ */
 public class JiraRestSession implements JiraInteractionSession {
 
     private static final Logger LOGGER = Logger.getLogger(JiraRestSession.class.getName());
