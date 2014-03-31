@@ -42,6 +42,7 @@ public class JiraRestSession implements JiraInteractionSession {
         JiraRestSession jiraRestSession = new JiraRestSession(jiraRestClient);
 
         try {
+            //FIXME: access to /serverInfo resource seems not allowed for anonymous users - find better solution.
             ServerInfo serverInfo = jiraRestClient.getMetadataClient().getServerInfo().get();
             String jiraVersion = serverInfo.getVersion();
             LOGGER.info("Successfully connected to JIRAira instance, found version " + jiraVersion);

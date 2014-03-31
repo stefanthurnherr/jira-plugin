@@ -37,17 +37,22 @@ public class JiraSessionManager {
     public static JiraInteractionSession createSession(JiraSite site, URL url, boolean useHttpAuth) throws IOException, ServiceException {
 
         UsernamePasswordCredentials credentials = lookupCredentials(url);
+        final String username;
+        final String password;
 
         try {
             if (credentials != null) {
                 LOGGER.info("Trying to create JIRA session for " + url.toURI() + " using domain-based credentials (" + credentials.getUsername() + ").");
-                return JiraRestSession.createSession(url.toURI(), credentials.getUsername(), Secret.toString(credentials.getPassword()));
-                //return JiraSoapSession.createSession(site, url, credentials.getUsername(), Secret.toString(credentials.getPassword()), useHttpAuth);
+                username = credentials.getUsername();
+                password = Secret.toString(credentials.getPassword());
+            } else {
+                LOGGER.info("No matching credentials found, trying to connect to JIRA instance anonymously.");
+                username = null;
+                password = null;
             }
 
-            LOGGER.info("No matching credentials found, cannot create JIRA session.");
-
-            return null;
+            return JiraRestSession.createSession(url.toURI(), username, password);
+            //return JiraSoapSession.createSession(site, url, credentials.getUsername(), Secret.toString(credentials.getPassword()), useHttpAuth);
 
         } catch (URISyntaxException e) {
             LOGGER.log(Level.SEVERE, "Cannot create session for invalid URI " + url.toExternalForm(), e);
