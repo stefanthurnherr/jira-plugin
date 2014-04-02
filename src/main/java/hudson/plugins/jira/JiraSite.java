@@ -3,12 +3,21 @@ package hudson.plugins.jira;
 import com.atlassian.jira.rest.client.api.domain.BasicProject;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.util.concurrent.Promise;
+import com.cloudbees.plugins.credentials.CredentialsMatcher;
+import com.cloudbees.plugins.credentials.CredentialsMatchers;
+import com.cloudbees.plugins.credentials.CredentialsProvider;
+import com.cloudbees.plugins.credentials.common.StandardListBoxModel;
+import com.cloudbees.plugins.credentials.common.StandardUsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
+import com.cloudbees.plugins.credentials.domains.DomainRequirement;
+import com.cloudbees.plugins.credentials.domains.URIRequirementBuilder;
 import com.google.common.cache.Cache;
 import com.google.common.cache.CacheBuilder;
 
 import hudson.Extension;
 import hudson.Util;
 import hudson.model.AbstractDescribableImpl;
+import hudson.model.Item;
 import hudson.model.AbstractProject;
 import hudson.model.Descriptor;
 import hudson.model.Hudson;
@@ -17,13 +26,17 @@ import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.remote.JiraSessionManager;
 import hudson.plugins.jira.remote.soap.SoapUrlCheck;
 import hudson.plugins.jira.soap.*;
+import hudson.security.ACL;
 import hudson.util.FormValidation;
+import hudson.util.ListBoxModel;
 
 import org.apache.axis.AxisFault;
+import org.kohsuke.stapler.AncestorInPath;
 import org.kohsuke.stapler.DataBoundConstructor;
 import org.kohsuke.stapler.QueryParameter;
 
 import javax.annotation.CheckForNull;
+import javax.annotation.Nonnull;
 import javax.annotation.Nullable;
 import javax.servlet.ServletException;
 import javax.xml.rpc.ServiceException;
@@ -78,6 +91,8 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      * Whether the JIRA instance requires HTTP Basic Authentication for login
      */
     public final boolean useHTTPAuth;
+
+    public final UsernamePasswordCredentials credentials;
 
     /**
      * Group visibility to constrain the visibility of the added comment. Optional.
@@ -137,7 +152,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
     @DataBoundConstructor
     public JiraSite(URL url, URL alternativeUrl, boolean supportsWikiStyleComment, boolean recordScmChanges, String userPattern,
-            boolean updateJiraIssueForAllStatus, String groupVisibility, String roleVisibility, boolean useHTTPAuth) {
+            boolean updateJiraIssueForAllStatus, String credentialsId, String groupVisibility, String roleVisibility, boolean useHTTPAuth) {
         if (!url.toExternalForm().endsWith("/"))
             try {
                 url = new URL(url.toExternalForm() + "/");
@@ -164,10 +179,26 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         }
 
         this.updateJiraIssueForAllStatus = updateJiraIssueForAllStatus;
+
+        credentials = parseCredentialsOrNull(url, credentialsId);
+
         this.groupVisibility = Util.fixEmpty(groupVisibility);
         this.roleVisibility = Util.fixEmpty(roleVisibility);
         this.useHTTPAuth = useHTTPAuth;
         this.jiraSession.set(new WeakReference<JiraInteractionSession>(null));
+    }
+
+    private static UsernamePasswordCredentials parseCredentialsOrNull(@Nonnull URL url, @Nullable String credentialsId) {
+        return CredentialsMatchers.firstOrNull(
+                CredentialsProvider.lookupCredentials(UsernamePasswordCredentials.class, (Item)null,
+                        ACL.SYSTEM, URIRequirementBuilder.fromUri(url.toExternalForm()).build()),
+                        CredentialsMatchers.allOf(
+                                idMatcher(credentialsId),
+                                CredentialsMatchers.instanceOf(UsernamePasswordCredentials.class)));
+    }
+
+    private static CredentialsMatcher idMatcher(String credentialsId) {
+        return credentialsId == null ? CredentialsMatchers.never() : CredentialsMatchers.withId(credentialsId);
     }
 
     public Object readResolve() {
@@ -205,7 +236,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         if (session == null) {
             // TODO: we should check for session timeout, too (but there's no method for that on JiraSoapService)
             // Currently no real problem, as we're using a weak reference for the session, so it will be GC'ed very quickly
-            session = JiraSessionManager.createSession(this, url, useHTTPAuth);
+            session = JiraSessionManager.createSession(this, url, credentials, useHTTPAuth);
             jiraSession.set(new WeakReference<JiraInteractionSession>(session));
         }
         return session;
@@ -357,7 +388,8 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
     public JiraIssue getIssue(final String id) throws IOException, ServiceException {
 
         try {
-            Promise<Issue> issueAsync = getSession().getIssueAsync(id);
+            JiraInteractionSession session = getSession();
+            Promise<Issue> issueAsync = session.getIssueAsync(id);
             Issue issue = issueAsync.get();
             return new JiraIssue(issue.getKey(), issue.getSummary());
         } catch (InterruptedException e) {
@@ -625,6 +657,24 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
             return new SoapUrlCheck(value).doCheck();
         }
 
+        //FIXME: query param url seems to always be null - need to add *Definition/*Value jelly.
+        public ListBoxModel doFillCredentialsIdItems(@AncestorInPath AbstractProject<?,?> context,
+                @QueryParameter String url) {
+            List<DomainRequirement> domainRequirements;
+            if (url == null) {
+                domainRequirements = Collections.<DomainRequirement> emptyList();
+            } else {
+                domainRequirements = URIRequirementBuilder.fromUri(url.trim()).build();
+            }
+            return new StandardListBoxModel()
+            .withEmptySelection()
+            .withMatching(
+                    CredentialsMatchers.instanceOf(StandardUsernamePasswordCredentials.class),
+                    CredentialsProvider.lookupCredentials(
+                            StandardUsernamePasswordCredentials.class, context,
+                            ACL.SYSTEM, domainRequirements));
+        }
+
         public FormValidation doCheckUserPattern(@QueryParameter String value) throws IOException {
             String userPattern = Util.fixEmpty(value);
             if (userPattern == null) {// userPattern not entered yet
@@ -642,6 +692,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
          * Checks if all the input field values are valid.
          */
         public FormValidation doValidate(@QueryParameter String url,
+                @QueryParameter String credentialsId,
                 @QueryParameter String groupVisibility,
                 @QueryParameter String roleVisibility,
                 @QueryParameter boolean useHTTPAuth,
@@ -663,10 +714,10 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
             // Instantiate JiraSite to run all validations done in constructor.
             JiraSite site = new JiraSite(urlObject, altUrl, false,
-                    false, null, false, groupVisibility, roleVisibility, useHTTPAuth);
+                    false, null, false, credentialsId, groupVisibility, roleVisibility, useHTTPAuth);
 
             try {
-                JiraInteractionSession jiraSession = JiraSessionManager.createSession(site, urlObject, useHTTPAuth);
+                JiraInteractionSession jiraSession = JiraSessionManager.createSession(site, urlObject, site.credentials, useHTTPAuth);
                 //FIXME: after removal of SOAP, decide on whether to return null or throw exception when no success.
                 if (jiraSession == null) {
                     return FormValidation.error("Failed to connect to JIRA at " + urlObject.toExternalForm() + ". Invalid url? Or invalid/no credentials specified?");

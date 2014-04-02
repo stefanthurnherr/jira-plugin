@@ -35,7 +35,7 @@ public interface JiraInteractionSession {
 
     /**
      * Adds a comment to the existing issue. Constrains the visibility of the
-     * comment the the supplied groupVisibility.
+     * comment to the supplied groupVisibility.
      */
     void addComment(String issueId, String comment, String groupVisibility,
             String roleVisibility) throws RemoteException;

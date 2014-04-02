@@ -34,9 +34,9 @@ public class JiraSessionManager {
      * @deprecated please use {@link JiraSite#getSession()} unless you really want a NEW session
      */
     @Deprecated
-    public static JiraInteractionSession createSession(JiraSite site, URL url, boolean useHttpAuth) throws IOException, ServiceException {
+    public static JiraInteractionSession createSession(JiraSite site, URL url, UsernamePasswordCredentials credentials, boolean useHttpAuth) throws IOException, ServiceException {
 
-        UsernamePasswordCredentials credentials = lookupCredentials(url);
+        //UsernamePasswordCredentials localCredentials = lookupCredentials(url);
         final String username;
         final String password;
 
