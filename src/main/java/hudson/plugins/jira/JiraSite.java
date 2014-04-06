@@ -92,7 +92,8 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
      */
     public final boolean useHTTPAuth;
 
-    public final UsernamePasswordCredentials credentials;
+    //public final UsernamePasswordCredentials credentials;
+    public final String credentialsId;
 
     /**
      * Group visibility to constrain the visibility of the added comment. Optional.
@@ -180,7 +181,8 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
 
         this.updateJiraIssueForAllStatus = updateJiraIssueForAllStatus;
 
-        credentials = parseCredentialsOrNull(url, credentialsId);
+        this.credentialsId = credentialsId;
+        //UsernamePasswordCredentials credentials = parseCredentialsOrNull(url, credentialsId);
 
         this.groupVisibility = Util.fixEmpty(groupVisibility);
         this.roleVisibility = Util.fixEmpty(roleVisibility);
@@ -234,6 +236,7 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
         }
 
         if (session == null) {
+            UsernamePasswordCredentials credentials = parseCredentialsOrNull(url, credentialsId);
             // TODO: we should check for session timeout, too (but there's no method for that on JiraSoapService)
             // Currently no real problem, as we're using a weak reference for the session, so it will be GC'ed very quickly
             session = JiraSessionManager.createSession(this, url, credentials, useHTTPAuth);
@@ -698,9 +701,12 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
                 @QueryParameter boolean useHTTPAuth,
                 @QueryParameter String alternativeUrl)
                         throws IOException {
+
+            LOGGER.info("doValidate using credentials id=" + credentialsId + " and useHTTPAuth=" + useHTTPAuth + " and roleVisibility=" + roleVisibility);
+
             url = Util.fixEmpty(url);
             alternativeUrl = Util.fixEmpty(alternativeUrl);
-            if (url == null) {// URL not entered yet
+            if (url == null) {
                 return FormValidation.error("No URL given");
             }
 
@@ -717,7 +723,8 @@ public class JiraSite extends AbstractDescribableImpl<JiraSite> {
                     false, null, false, credentialsId, groupVisibility, roleVisibility, useHTTPAuth);
 
             try {
-                JiraInteractionSession jiraSession = JiraSessionManager.createSession(site, urlObject, site.credentials, useHTTPAuth);
+                UsernamePasswordCredentials credentials = parseCredentialsOrNull(urlObject, credentialsId);
+                JiraInteractionSession jiraSession = JiraSessionManager.createSession(site, urlObject, credentials, useHTTPAuth);
                 //FIXME: after removal of SOAP, decide on whether to return null or throw exception when no success.
                 if (jiraSession == null) {
                     return FormValidation.error("Failed to connect to JIRA at " + urlObject.toExternalForm() + ". Invalid url? Or invalid/no credentials specified?");

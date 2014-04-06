@@ -13,8 +13,10 @@ import com.atlassian.jira.rest.client.api.domain.BasicProject;
 import com.atlassian.jira.rest.client.api.domain.Issue;
 import com.atlassian.jira.rest.client.api.domain.ServerInfo;
 import com.atlassian.jira.rest.client.api.domain.User;
+import com.atlassian.jira.rest.client.auth.AnonymousAuthenticationHandler;
 import com.atlassian.jira.rest.client.internal.async.AsynchronousJiraRestClientFactory;
 import com.atlassian.util.concurrent.Promise;
+import com.cloudbees.plugins.credentials.common.UsernamePasswordCredentials;
 
 import hudson.plugins.jira.remote.JiraInteractionSession;
 import hudson.plugins.jira.soap.RemoteComponent;
@@ -23,6 +25,7 @@ import hudson.plugins.jira.soap.RemoteGroup;
 import hudson.plugins.jira.soap.RemoteIssue;
 import hudson.plugins.jira.soap.RemoteIssueType;
 import hudson.plugins.jira.soap.RemoteVersion;
+import hudson.util.Secret;
 
 /**
  * Allows interaction with a JIRA instance using its REST API.
@@ -35,10 +38,41 @@ public class JiraRestSession implements JiraInteractionSession {
 
     private final JiraRestClient jiraRestClient;
 
+    public static JiraRestSession createSession(URI jiraUri, UsernamePasswordCredentials credentials) {
+
+        final JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
+        final JiraRestClient jiraRestClient;
+
+        if (credentials == null) {
+            LOGGER.info("No credentials specified, trying to connect to JIRA instance at " + jiraUri + " anonymously.");
+            jiraRestClient = factory.create(jiraUri, new AnonymousAuthenticationHandler());
+
+        } else {
+            LOGGER.info("Trying to connect to JIRA instance at " + jiraUri + " using specified credentials (description: " + credentials.getDescriptor() + ").");
+            final String password = Secret.toString(credentials.getPassword());
+            jiraRestClient = factory.createWithBasicHttpAuthentication(jiraUri, credentials.getUsername(), password);
+        }
+
+        try {
+            final JiraRestSession jiraRestSession = new JiraRestSession(jiraRestClient);
+
+            //FIXME: access to /serverInfo resource seems not allowed for anonymous users - find better solution.
+            ServerInfo serverInfo = jiraRestClient.getMetadataClient().getServerInfo().get();
+            String jiraVersion = serverInfo.getVersion();
+            LOGGER.info("Successfully connected to JIRA instance, found version " + jiraVersion);
+            return jiraRestSession;
+
+        } catch (Exception ex) {
+            LOGGER.log(Level.WARNING, "Could not connect to JIRA instance using credentials " + credentials, ex);
+            return null;
+        }
+    }
+
     public static JiraRestSession createSession(URI jiraUri, String username, String password) {
 
         final JiraRestClientFactory factory = new AsynchronousJiraRestClientFactory();
         final JiraRestClient jiraRestClient = factory.createWithBasicHttpAuthentication(jiraUri, username, password);
+        factory.create(jiraUri, new AnonymousAuthenticationHandler());
 
         JiraRestSession jiraRestSession = new JiraRestSession(jiraRestClient);
 

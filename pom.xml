@@ -149,6 +149,18 @@
         <version>2.0.0-m19</version>
     </dependency>
     <dependency>
+        <groupId>com.atlassian.httpclient</groupId>
+        <artifactId>atlassian-httpclient-api</artifactId>
+        <version>0.14.1</version>
+        <exclusions>
+          <exclusion>
+            <!-- exclude (very old) transitive dependency v10.0.1 from importing, ensure maven resolves to newer version. -->
+            <groupId>com.google.guava</groupId>
+            <artifactId>guava</artifactId>
+          </exclusion>
+        </exclusions>
+    </dependency>
+    <dependency>
       <groupId>org.apache.axis</groupId>
       <artifactId>axis</artifactId>
       <version>1.4</version>

@@ -3,8 +3,6 @@ package hudson.plugins.jira.remote;
 import hudson.model.Item;
 import hudson.plugins.jira.JiraSite;
 import hudson.plugins.jira.remote.rest.JiraRestSession;
-import hudson.util.Secret;
-
 import java.io.IOException;
 import java.net.URISyntaxException;
 import java.net.URL;
@@ -28,34 +26,17 @@ public class JiraSessionManager {
     private static final Logger LOGGER = Logger.getLogger(JiraSessionManager.class.getName());
 
     /**
-     * Creates a remote access session to this JIRA.
+     * Creates a new remote access session to this JIRA.
      *
      * @return null if session creation did not succeed
-     * @deprecated please use {@link JiraSite#getSession()} unless you really want a NEW session
      */
-    @Deprecated
     public static JiraInteractionSession createSession(JiraSite site, URL url, UsernamePasswordCredentials credentials, boolean useHttpAuth) throws IOException, ServiceException {
 
-        //UsernamePasswordCredentials localCredentials = lookupCredentials(url);
-        final String username;
-        final String password;
-
         try {
-            if (credentials != null) {
-                LOGGER.info("Trying to create JIRA session for " + url.toURI() + " using domain-based credentials (" + credentials.getUsername() + ").");
-                username = credentials.getUsername();
-                password = Secret.toString(credentials.getPassword());
-            } else {
-                LOGGER.info("No matching credentials found, trying to connect to JIRA instance anonymously.");
-                username = null;
-                password = null;
-            }
-
-            return JiraRestSession.createSession(url.toURI(), username, password);
-            //return JiraSoapSession.createSession(site, url, credentials.getUsername(), Secret.toString(credentials.getPassword()), useHttpAuth);
+            return JiraRestSession.createSession(url.toURI(), credentials);
 
         } catch (URISyntaxException e) {
-            LOGGER.log(Level.SEVERE, "Cannot create session for invalid URI " + url.toExternalForm(), e);
+            LOGGER.log(Level.SEVERE, "Cannot create JIRA session for invalid URI " + url, e);
             return null;
         }
     }
